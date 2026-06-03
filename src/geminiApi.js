@@ -70,12 +70,31 @@ export function normalizeQuestion(text) {
     .slice(0, 80)
 }
 
+// Themen-Aspekte pro Kategorie – sorgen für deutlich mehr Abwechslung.
+const SUBTOPICS = {
+  allgemeinwissen: ['Geografie', 'Wissenschaft', 'Sport', 'Technik', 'Natur & Tiere', 'Politik & Recht', 'Sprache & Redewendungen', 'berühmte Erfindungen', 'Wirtschaft', 'Kuriositäten & Rekorde'],
+  'filme-serien': ['Filmklassiker', 'Streaming-Serien', 'Animations- & Pixar-Filme', 'Science-Fiction & Fantasy', 'Regisseure', 'berühmte Filmzitate', 'Oscars & Preise', 'Komödien', 'Horror & Thriller', 'Film-Soundtracks'],
+  musik: ['Rock', 'Pop der 80er/90er', 'HipHop & Rap', 'Klassik', 'deutschsprachige Musik', 'Instrumente & Musiktheorie', 'Eurovision', 'Bands & Besetzungen', 'One-Hit-Wonder', 'aktuelle Charts'],
+  'mode-design': ['Modehäuser', 'berühmte Designer', 'Stilepochen', 'Materialien & Stoffe', 'Farblehre', 'Accessoires & Schuhe', 'Streetwear', 'Haute Couture', 'Modegeschichte', 'Marken-Logos'],
+  kochen: ['internationale Küche', 'Backen & Patisserie', 'Gewürze & Kräuter', 'Küchentechniken', 'Wein & Getränke', 'Zutatenkunde', 'Desserts', 'regionale Spezialitäten', 'Küchengeräte', 'Fachbegriffe'],
+  geschichte: ['Antike', 'Mittelalter', 'Neuzeit', '20. Jahrhundert', 'historische Persönlichkeiten', 'Entdeckungen & Erfindungen', 'Kriege & Verträge', 'deutsche Geschichte', 'Weltreiche', 'Revolutionen'],
+  astronomie: ['Planeten', 'Sterne & Sternbilder', 'Raumfahrtmissionen', 'Galaxien', 'Schwarze Löcher', 'Mond & Sonne', 'berühmte Astronomen', 'Teleskope', 'Kometen & Asteroiden', 'Kosmologie'],
+  literatur: ['Weltliteratur-Klassiker', 'deutsche Literatur', 'Lyrik & Gedichte', 'Autoren-Biografien', 'berühmte Romanfiguren', 'Literaturepochen', 'moderne Bestseller', 'Märchen & Sagen', 'literarische Zitate', 'Nobelpreisträger'],
+}
+
+function pickAngle(categoryId) {
+  const list = SUBTOPICS[categoryId]
+  if (!list) return ''
+  return list[Math.floor(Math.random() * list.length)]
+}
+
 // --- Frage generieren ---
-const QUESTION_SYSTEM_PROMPT = (category, avoid) => {
-  let p = `Du bist VERA, eine freche und provokante Quiz-KI. Generiere EINE neue Multiple-Choice-Frage für die Kategorie ${category}.
-Schwierigkeitsgrad: mittel bis schwer. Variiere Thema und Unterbereich stark – sei kreativ und überraschend.`
+const QUESTION_SYSTEM_PROMPT = (category, avoid, angle) => {
+  let p = `Du bist VERA, eine freche und provokante Quiz-KI. Generiere EINE neue Multiple-Choice-Frage für die Kategorie ${category}.`
+  if (angle) p += `\nFokus-Aspekt für Abwechslung: ${angle}.`
+  p += `\nSchwierigkeitsgrad: mittel bis schwer. Sei originell und spezifisch – vermeide die allerbekanntesten 08/15-Standardfragen.`
   if (avoid && avoid.length) {
-    const list = avoid.slice(-25).join(' | ')
+    const list = avoid.slice(-30).join(' | ')
     p += `\nWICHTIG: Stelle eine DEUTLICH ANDERE Frage als diese bereits gestellten (weder gleich noch sehr ähnlich): ${list}`
   }
   p += `\nAntworte NUR mit einem JSON-Objekt: { "question": "...", "options": ["A", "B", "C", "D"], "correctIndex": 0-3 }
@@ -89,7 +108,8 @@ export async function generateQuestion(category, avoidList = []) {
     // Bis zu 3 Versuche, eine nicht-doppelte Frage zu bekommen.
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        const text = await callGemini(QUESTION_SYSTEM_PROMPT(category.name, avoidList), {
+        const angle = pickAngle(category.id)
+        const text = await callGemini(QUESTION_SYSTEM_PROMPT(category.name, avoidList, angle), {
           temperature: 1.0,
           maxOutputTokens: 500,
         })
