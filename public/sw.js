@@ -1,43 +1,52 @@
-// VERSUS Service Worker – Auto-Update Strategie
-// Erhöhe die Versionsnummer bei jedem Release. Da skipWaiting() + clients.claim()
-// genutzt werden, aktiviert sich ein neuer Service Worker sofort und übernimmt
-// alle offenen Tabs – kein manuelles Neuinstallieren nötig.
-const CACHE_NAME = 'versus-v1.0.8';
+// VERSUS Service Worker – Auto-Update, ohne je eine alte Version zu servieren.
+//
+// Wichtig: Die HTML-Seite wird NIE aus dem Cache geliefert (nur Netzwerk),
+// damit nach dem "Wegswipen" niemals eine ältere Version geladen wird.
+// Da die App ohnehin Netzwerk braucht (Firebase + Gemini), ist Offline-
+// Caching der Seite überflüssig. Nur hash-benannte, unveränderliche Assets
+// (JS/CSS/Icons/Fonts) werden gecacht – die können nie "veralten".
+const CACHE_NAME = 'versus-v1.0.9';
 
 self.addEventListener('install', () => self.skipWaiting());
-
-// Erlaubt der App, ein wartendes Update sofort zu aktivieren.
-self.addEventListener('message', (e) => {
-  if (e.data && e.data.type === 'SKIP_WAITING') self.skipWaiting();
-});
 
 self.addEventListener('activate', (e) =>
   e.waitUntil(
     caches
       .keys()
-      .then((keys) =>
-        Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-      )
+      .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   )
 );
 
-// Network-first: immer frische Inhalte holen (Auto-Update), Cache nur als Offline-Fallback.
+self.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'SKIP_WAITING') self.skipWaiting();
+});
+
 self.addEventListener('fetch', (e) => {
   const req = e.request;
-  // Nur GET-Requests cachen; APIs (Firebase / Gemini / Google) nie cachen.
   if (req.method !== 'GET') return;
 
+  // HTML / Navigationen: immer frisch aus dem Netz (kein Cache-Fallback).
+  if (req.mode === 'navigate' || req.destination === 'document') {
+    e.respondWith(fetch(req));
+    return;
+  }
+
+  const url = new URL(req.url);
+  // Nur gleich-Herkunft-Assets cachen (nicht Firebase/Gemini/Google).
+  if (url.origin !== self.location.origin) return;
+
+  // Unveränderliche Assets: cache-first, sonst Netzwerk (und cachen).
   e.respondWith(
-    fetch(req)
-      .then((res) => {
-        // Erfolgreiche, gleichherkunftsfähige Antworten in den Cache legen.
-        if (res && res.status === 200 && res.type === 'basic') {
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
-        }
-        return res;
-      })
-      .catch(() => caches.match(req))
+    caches.open(CACHE_NAME).then((cache) =>
+      cache.match(req).then(
+        (hit) =>
+          hit ||
+          fetch(req).then((res) => {
+            if (res && res.status === 200) cache.put(req, res.clone());
+            return res;
+          })
+      )
+    )
   );
 });

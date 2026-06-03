@@ -58,7 +58,7 @@ export default function InfoModal({ onClose, onLogout, user }) {
 
         <h3>App</h3>
         <p className="subtitle" style={{ marginBottom: 10 }}>
-          Version <strong>1.0.8</strong>. Falls eine neue Version nicht
+          Version <strong>1.0.9</strong>. Falls eine neue Version nicht
           automatisch erscheint, hier frisch laden:
         </p>
         <button className="btn btn-ghost" onClick={handleForceUpdate}>
@@ -67,6 +67,8 @@ export default function InfoModal({ onClose, onLogout, user }) {
 
         <h3>Changelog</h3>
         <ul>
+          <li className="changelog-item">v1.0.9 – Kein Versions-Rücksprung mehr</li>
+          <li>Seite kommt immer frisch aus dem Netz (kein alter Cache)</li>
           <li className="changelog-item">v1.0.8 – Frischere Fragen</li>
           <li>Zufälliger Themen-Aspekt pro Frage (mehr Abwechslung)</li>
           <li>Anweisung an die KI: originell statt 08/15</li>
