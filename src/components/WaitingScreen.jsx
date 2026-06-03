@@ -1,6 +1,8 @@
 // Warten auf den zweiten Spieler. Host kann starten, wenn beide da sind.
 import React from 'react'
 import { PLAYERS } from '../config.js'
+import VeraStage from './VeraStage.jsx'
+import { pickWaitLine } from './Vera.jsx'
 
 export default function WaitingScreen({ room, roomCode, user, isHost, onStart, onLeave, busy }) {
   const players = room.players || {}
@@ -8,6 +10,8 @@ export default function WaitingScreen({ room, roomCode, user, isHost, onStart, o
 
   return (
     <div className="screen">
+      <VeraStage expression="smug" line={pickWaitLine(Number(roomCode))} size={118} compact />
+
       <div className="center-stack">
         <div style={{ textAlign: 'center' }}>
           <p className="subtitle">Raumcode – an den/die Partner:in weitergeben:</p>

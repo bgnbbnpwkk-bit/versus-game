@@ -1,6 +1,8 @@
 // Auflösung: beide Antworten aufgedeckt, richtige grün/falsche rot, Punkte + VERA-Kommentar.
 import React from 'react'
 import { PLAYERS, QUESTIONS_PER_ROUND } from '../config.js'
+import VeraStage from './VeraStage.jsx'
+import { veraExpressionForPoints } from './Vera.jsx'
 
 const LETTERS = ['A', 'B', 'C', 'D']
 
@@ -77,15 +79,13 @@ export default function RevealScreen({ room, user, isHost, onNext, busy }) {
         <div className="points-badge points-ki">+{pts.ki} Punkt für VERA 😈</div>
       )}
 
-      {room.veraComment && (
-        <div className="vera" style={{ marginTop: 14 }}>
-          <div className="vera-avatar">😈</div>
-          <div>
-            <div className="vera-name">VERA</div>
-            <div className="vera-text">{room.veraComment}</div>
-          </div>
-        </div>
-      )}
+      <div style={{ marginTop: 16 }}>
+        <VeraStage
+          expression={veraExpressionForPoints(pts)}
+          line={room.veraComment}
+          size={130}
+        />
+      </div>
 
       <div style={{ marginTop: 18 }}>
         {isHost ? (

@@ -1,6 +1,8 @@
 // Fragebildschirm: geheime Abstimmung. Eigene Antwort sichtbar, Partner-Antwort nicht.
 import React from 'react'
 import { PLAYERS, QUESTIONS_PER_ROUND } from '../config.js'
+import VeraStage from './VeraStage.jsx'
+import { pickQuestionTaunt } from './Vera.jsx'
 
 const LETTERS = ['A', 'B', 'C', 'D']
 
@@ -25,8 +27,17 @@ export default function QuestionScreen({ room, user, onAnswer }) {
 
   const color = q.categoryColor || '#2563eb'
 
+  const bothAnswered = hasAnswered && partnerAnswered
+
   return (
     <div className="screen">
+      <VeraStage
+        expression={bothAnswered ? 'think' : 'smug'}
+        line={pickQuestionTaunt(room.questionNumber)}
+        size={120}
+        compact
+      />
+
       <Scoreboard room={room} />
 
       <div className="q-header">

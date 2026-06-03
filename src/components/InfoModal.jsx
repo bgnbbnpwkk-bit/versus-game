@@ -27,6 +27,7 @@ export default function InfoModal({ onClose, onLogout, user }) {
         <h3>Features</h3>
         <ul>
           <li>Kooperatives Quiz: Marc &amp; Melli gegen VERA (KI) 😈</li>
+          <li>VERA als gezeichnete Gegnerin, die euch live gegenübersitzt</li>
           <li>8 Kategorien mit individuellen Farben</li>
           <li>Geheime Abstimmung: beide antworten unabhängig, Auflösung erst wenn beide fertig</li>
           <li>Punkte-System mit Harmonie-Bonus (2 Punkte bei gleicher richtiger Antwort)</li>
@@ -38,6 +39,10 @@ export default function InfoModal({ onClose, onLogout, user }) {
 
         <h3>Changelog</h3>
         <ul>
+          <li className="changelog-item">v1.0.2 – VERA bekommt ein Gesicht</li>
+          <li>VERA sitzt euch als gezeichnete Figur gegenüber</li>
+          <li>Live-Mimik: hämisch, lauernd, schadenfroh, beeindruckt, geschlagen</li>
+          <li>Sprechblasen am „Tisch" in jeder Spielphase</li>
           <li className="changelog-item">v1.0.1 – Auth &amp; Datenbank</li>
           <li>Login über Firebase Auth SDK (Google Sign-In)</li>
           <li>Gemini-API-Key im i-Panel eingebbar (localStorage)</li>

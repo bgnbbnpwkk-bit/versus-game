@@ -1,5 +1,7 @@
 // Endauswertung: Team vs. VERA, Gewinner-Animation, History, Nochmal spielen.
 import React from 'react'
+import VeraStage from './VeraStage.jsx'
+import { veraResultExpression, veraResultLine } from './Vera.jsx'
 
 export default function ResultScreen({ room, isHost, onPlayAgain, onLeave, highscore, busy }) {
   const s = room.scores || { team: 0, ki: 0 }
@@ -16,6 +18,13 @@ export default function ResultScreen({ room, isHost, onPlayAgain, onLeave, highs
 
   return (
     <div className="screen">
+      <VeraStage
+        expression={veraResultExpression(s.team, s.ki)}
+        line={veraResultLine(s.team, s.ki)}
+        size={120}
+        compact
+      />
+
       <div className="result-hero" style={{ marginTop: 10 }}>
         <div className="result-emoji">{emoji}</div>
         <h1 className="title">{headline}</h1>
