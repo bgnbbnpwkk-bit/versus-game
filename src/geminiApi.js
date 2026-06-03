@@ -2,18 +2,43 @@
 // Gemini API – Fragen generieren + VERA-Kommentare (REST, kein SDK)
 // Model: gemini-2.5-flash-preview-05-20
 // =====================================================================
-import { GEMINI_API_KEY, GEMINI_MODEL } from './config.js'
+import { GEMINI_MODEL } from './config.js'
 import { categoryHint } from './data/categories.js'
 import { FALLBACK_QUESTIONS, FALLBACK_COMMENTS } from './data/fallback.js'
 
 const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`
 
+const GEMINI_KEY_STORAGE = 'versus_gemini_key'
+
+// --- Key-Verwaltung (über i-Panel eingebbar, in localStorage gespeichert) ---
+export function getGeminiKey() {
+  try {
+    return localStorage.getItem(GEMINI_KEY_STORAGE) || ''
+  } catch {
+    return ''
+  }
+}
+
+export function setGeminiKey(key) {
+  try {
+    if (key) localStorage.setItem(GEMINI_KEY_STORAGE, key.trim())
+    else localStorage.removeItem(GEMINI_KEY_STORAGE)
+  } catch {
+    /* ignore */
+  }
+}
+
+export function hasGeminiKey() {
+  return !!getGeminiKey()
+}
+
 function hasValidKey() {
-  return GEMINI_API_KEY && !GEMINI_API_KEY.includes('PLACEHOLDER')
+  return hasGeminiKey()
 }
 
 async function callGemini(prompt, { temperature = 0.9, maxOutputTokens = 500 } = {}) {
-  const response = await fetch(`${ENDPOINT}?key=${GEMINI_API_KEY}`, {
+  const key = getGeminiKey()
+  const response = await fetch(`${ENDPOINT}?key=${key}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

@@ -22,26 +22,24 @@ wenn beide bestätigt haben.
 
 - React 18 + Vite
 - Firebase Realtime Database (**nur REST API**, kein SDK) – Polling alle 800 ms
-- Google Auth via Google Identity Services (kein Firebase SDK)
+- Google Auth via **Firebase Auth SDK** (Google Sign-In, keine separate Client-ID nötig)
 - Gemini API (`gemini-2.5-flash-preview-05-20`) für Fragen & Kommentare
 - PWA mit Service Worker (Auto-Update)
 - Deployment: GitHub Pages via GitHub Actions (Branch `main`)
 
 ## Konfiguration (nach dem Deployment)
 
-In `src/config.js` die beiden Platzhalter ersetzen:
+- **Gemini-API-Key**: wird **nicht im Code** hinterlegt, sondern direkt in der App
+  über das **i-Panel** eingegeben und in `localStorage` gespeichert (pro Gerät).
+  Key holen: https://aistudio.google.com/app/apikey – ohne Key nutzt das Spiel
+  eingebaute Fallback-Fragen.
+- **Google-Login**: läuft über das Firebase Auth SDK – keine separate Client-ID
+  nötig. In der **Firebase Console** muss nur einmalig die Domain
+  `bgnbbnpwkk-bit.github.io` unter _Authentication → Settings → Authorized domains_
+  freigegeben und _Google_ als Sign-in-Provider aktiviert sein.
 
-| Konstante          | Wofür                       | Woher                                                                                                   |
-| ------------------ | --------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `GEMINI_API_KEY`   | KI-Fragen & VERA-Kommentare | https://aistudio.google.com/app/apikey                                                                  |
-| `GOOGLE_CLIENT_ID` | Google-Login (nur Marc & Melli) | Google Cloud Console → OAuth-Client (Web). Autorisierte JS-Herkunft: `https://bgnbbnpwkk-bit.github.io` |
-
-> Solange `GOOGLE_CLIENT_ID` ein Platzhalter ist, bietet der Login-Screen einen
-> **Demo-Login** (Als Marc / Als Melli testen), damit die App sofort spielbar
-> ist. Ohne gültigen `GEMINI_API_KEY` werden eingebaute Fallback-Fragen genutzt.
-
-Die Firebase-Konfiguration (`unser-einkaufszettel`) ist bereits eingetragen –
-diese Keys sind Client-seitig und nicht geheim.
+Die Firebase-Konfiguration (`unser-einkaufszettel`) ist bereits in `src/config.js`
+eingetragen – diese Keys sind Client-seitig und nicht geheim.
 
 ## Entwicklung
 

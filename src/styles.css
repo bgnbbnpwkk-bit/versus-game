@@ -225,11 +225,35 @@ body {
   font-size: 64px;
   filter: drop-shadow(0 8px 14px rgba(37, 99, 235, 0.25));
 }
-.gsi-wrap {
+.google-btn {
   display: flex;
+  align-items: center;
   justify-content: center;
-  margin-top: 8px;
-  min-height: 44px;
+  gap: 12px;
+}
+.google-btn .g-logo {
+  background: #fff;
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+.key-row {
+  display: flex;
+  gap: 8px;
+}
+.key-status {
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 6px;
+}
+.key-status.ok {
+  color: var(--good);
+}
+.key-status.missing {
+  color: var(--text-faint);
 }
 .auth-error {
   color: var(--bad);

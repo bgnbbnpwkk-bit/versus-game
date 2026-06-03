@@ -4,7 +4,7 @@ import {
   POLL_INTERVAL_MS,
   QUESTIONS_PER_ROUND,
 } from './config.js'
-import { loadSession, saveSession, clearSession } from './auth.js'
+import { signInWithGoogle, signOutUser, onAuthEmail } from './firebaseAuth.js'
 import { getCategoryByName, randomCategory } from './data/categories.js'
 import { generateQuestion, generateComment } from './geminiApi.js'
 import {
@@ -50,11 +50,8 @@ export default function App() {
 
   const revealingRef = useRef(false)
 
-  // --- Session wiederherstellen ---
+  // --- Highscore aus localStorage laden ---
   useEffect(() => {
-    const email = loadSession()
-    const player = resolvePlayer(email)
-    if (player) setUser(player)
     try {
       const hs = localStorage.getItem(HIGHSCORE_KEY)
       if (hs != null) setHighscore(Number(hs))
@@ -63,20 +60,47 @@ export default function App() {
     }
   }, [])
 
-  // --- Auth ---
-  const handleCredential = useCallback((email) => {
-    const player = resolvePlayer(email)
-    if (!player) {
-      setAuthError('Dieser Account hat keinen Zugriff auf VERSUS.')
-      return
-    }
+  // --- Auth-Status über Firebase Auth SDK beobachten ---
+  useEffect(() => {
+    const unsub = onAuthEmail((email) => {
+      const player = resolvePlayer(email)
+      if (email && !player) {
+        // Eingeloggt, aber kein erlaubter Account → sofort abmelden.
+        setAuthError('Dieser Account hat keinen Zugriff auf VERSUS.')
+        setUser(null)
+        signOutUser().catch(() => {})
+        return
+      }
+      if (player) {
+        setAuthError('')
+        setUser(player)
+      } else {
+        setUser(null)
+      }
+    })
+    return unsub
+  }, [])
+
+  // --- Login per Google (Firebase Popup) ---
+  const handleSignIn = useCallback(async () => {
     setAuthError('')
-    saveSession(player.email)
-    setUser(player)
+    try {
+      await signInWithGoogle()
+    } catch (err) {
+      const code = err?.code || ''
+      if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+        return // vom Nutzer abgebrochen – keine Fehlermeldung
+      }
+      if (code === 'auth/unauthorized-domain') {
+        setAuthError('Diese Domain ist in Firebase nicht freigegeben.')
+      } else {
+        setAuthError('Anmeldung fehlgeschlagen. Bitte erneut versuchen.')
+      }
+    }
   }, [])
 
   const handleLogout = useCallback(() => {
-    clearSession()
+    signOutUser().catch(() => {})
     setUser(null)
     setRoomCode(null)
     setRoom(null)
@@ -284,7 +308,7 @@ export default function App() {
   // --- Render ---
   function renderContent() {
     if (!user) {
-      return <LoginScreen onCredential={handleCredential} authError={authError} />
+      return <LoginScreen onSignIn={handleSignIn} authError={authError} />
     }
     if (!roomCode) {
       return (

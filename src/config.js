@@ -12,15 +12,12 @@ export const FIREBASE = {
 }
 
 // --- Gemini API (Fragen + VERA-Kommentare) ---
-// HINWEIS: Diesen Platzhalter nach dem Deployment durch den echten Key ersetzen.
-export const GEMINI_API_KEY = '[GEMINI_API_KEY_PLACEHOLDER]'
+// Der API-Key wird NICHT hier hinterlegt, sondern zur Laufzeit über das
+// i-Panel eingegeben und in localStorage gespeichert (siehe src/geminiApi.js).
 export const GEMINI_MODEL = 'gemini-2.5-flash-preview-05-20'
 
-// --- Google Auth (Google Identity Services, ohne Firebase SDK) ---
-// Google OAuth Client-ID aus der Google Cloud Console (Web-Anwendung).
-// Autorisierte JavaScript-Herkunft: https://bgnbbnpwkk-bit.github.io
-// HINWEIS: Platzhalter nach dem Deployment ersetzen.
-export const GOOGLE_CLIENT_ID = '[GOOGLE_CLIENT_ID_PLACEHOLDER]'
+// --- Google Auth läuft über das Firebase Auth SDK (siehe src/firebaseAuth.js).
+// Keine separate Google Client-ID nötig – Firebase verwaltet OAuth intern.
 
 // --- Spieler-Identitäten (per E-Mail) ---
 export const PLAYERS = {

@@ -1,7 +1,19 @@
 // i-Button-Modal: Features, Changelog (eingebettet) + Tech Stack am Ende.
-import React from 'react'
+// Enthält auch das Eingabefeld für den Gemini-API-Key (localStorage).
+import React, { useState } from 'react'
+import { getGeminiKey, setGeminiKey } from '../geminiApi.js'
 
 export default function InfoModal({ onClose, onLogout, user }) {
+  const [keyInput, setKeyInput] = useState(getGeminiKey())
+  const [saved, setSaved] = useState(false)
+  const hasKey = !!getGeminiKey()
+
+  const handleSaveKey = () => {
+    setGeminiKey(keyInput)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 1500)
+  }
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -44,6 +56,28 @@ export default function InfoModal({ onClose, onLogout, user }) {
           <li>GitHub Pages via GitHub Actions</li>
           <li>PWA mit Service Worker</li>
         </ul>
+
+        <h3>KI-Schlüssel (Gemini)</h3>
+        <p className="subtitle" style={{ marginBottom: 10 }}>
+          Für KI-generierte Fragen &amp; VERA-Kommentare. Der Key wird nur lokal auf
+          diesem Gerät gespeichert. Ohne Key nutzt das Spiel eingebaute Fragen.
+        </p>
+        <div className="key-row">
+          <input
+            className="field"
+            style={{ textAlign: 'left', flex: 1 }}
+            type="password"
+            placeholder="Gemini API Key einfügen…"
+            value={keyInput}
+            onChange={(e) => setKeyInput(e.target.value)}
+          />
+          <button className="btn btn-primary" style={{ width: 'auto', padding: '0 18px' }} onClick={handleSaveKey}>
+            {saved ? '✓' : 'Speichern'}
+          </button>
+        </div>
+        <div className={`key-status ${hasKey ? 'ok' : 'missing'}`}>
+          {hasKey ? '✓ Key gespeichert – VERA generiert eigene Fragen.' : 'Kein Key – Fallback-Fragen aktiv.'}
+        </div>
 
         {user && (
           <>
