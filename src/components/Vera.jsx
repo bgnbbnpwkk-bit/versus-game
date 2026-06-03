@@ -10,7 +10,7 @@ const SKIN = '#FCE7D6'
 const LASH = '#4A3320'
 const LIP = '#D9776B'
 
-// --- Augen (groß, rund, anime) ---
+// --- Augen (groß, rund, anime) – klar sichtbar mit Iris & Pupille ---
 function Eye({ cx, cy, expr, side }) {
   if (expr === 'gloat') {
     // fröhlich geschlossen (^^)
@@ -25,39 +25,30 @@ function Eye({ cx, cy, expr, side }) {
     )
   }
   const wide = expr === 'impressed'
-  const rx = wide ? 15 : 13
-  const ry = wide ? 20 : 17
-  const half = expr === 'smug' || expr === 'angry'
-  const lidDrop = half ? ry * 0.42 : 0
-  const lookX = expr === 'smug' ? side * 2 : 0
-  const lookY = expr === 'think' ? -4 : 0
+  const rx = wide ? 14 : 12.5
+  const ry = wide ? 17.5 : 15.5
+  const ir = wide ? 12 : 10.5
+  const ex = cx + (expr === 'smug' ? side * 1.6 : 0)
+  const ey = cy + (expr === 'think' ? -3 : 0)
 
   return (
     <g>
       <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill="#fff" />
-      <ellipse cx={cx + lookX} cy={cy + lookY + 1} rx={rx - 1.5} ry={ry - 1.5} fill="url(#veraIris)" />
-      <circle cx={cx + lookX} cy={cy + lookY + 3} r={rx - 6} fill="#3A2410" />
-      <circle cx={cx + lookX - 4} cy={cy + lookY - 5} r="4.6" fill="#fff" />
-      <circle cx={cx + lookX + 4} cy={cy + lookY + 6} r="2.4" fill="#fff" opacity="0.9" />
-
-      {lidDrop > 0 && (
-        <rect x={cx - rx - 3} y={cy - ry - 10} width={rx * 2 + 6} height={lidDrop + 10} fill={SKIN} />
-      )}
+      <circle cx={ex} cy={ey} r={ir} fill="url(#veraIris)" />
+      <circle cx={ex} cy={ey + 1} r={ir * 0.52} fill="#2E1C0E" />
+      <circle cx={ex - ir * 0.34} cy={ey - ir * 0.42} r={ir * 0.32} fill="#fff" />
+      <circle cx={ex + ir * 0.3} cy={ey + ir * 0.45} r={ir * 0.16} fill="#fff" opacity="0.85" />
 
       {/* obere Wimpernlinie */}
       <path
-        d={
-          lidDrop > 0
-            ? `M${cx - rx} ${cy - ry + lidDrop} Q${cx} ${cy - ry + lidDrop - 3} ${cx + rx} ${cy - ry + lidDrop}`
-            : `M${cx - rx - 1} ${cy - ry + 3} Q${cx} ${cy - ry - 4} ${cx + rx + 1} ${cy - ry + 3}`
-        }
+        d={`M${cx - rx - 1} ${cy - ry + 2} Q${cx} ${cy - ry - 4} ${cx + rx + 1} ${cy - ry + 2}`}
         fill="none"
         stroke={LASH}
-        strokeWidth="4"
+        strokeWidth="3.4"
         strokeLinecap="round"
       />
 
-      {/* Anime-Tränen bei "besiegt" */}
+      {/* Anime-Träne bei "besiegt" */}
       {expr === 'defeated' && (
         <path d={`M${cx} ${cy + ry - 1} q-3 7 0 11 q3 -4 0 -11 Z`} fill="#7DD3FC" />
       )}
@@ -171,12 +162,9 @@ export default function Vera({ expression = 'smug', size = 150, float = true }) 
            C108 80 100 82 100 82 C100 82 92 80 88 92 C80 80 67 86 60 104 Z"
         fill="url(#veraHair)"
       />
-      {/* seitliche Haarsträhnen */}
-      <path d="M60 104 C54 120 56 138 62 148 C58 126 60 112 64 104 Z" fill="url(#veraHair)" />
-      <path d="M140 104 C146 120 144 138 138 148 C142 126 140 112 136 104 Z" fill="url(#veraHair)" />
 
-      <Eye cx="82" cy="112" expr={expr} side={-1} />
-      <Eye cx="118" cy="112" expr={expr} side={1} />
+      <Eye cx={82} cy={112} expr={expr} side={-1} />
+      <Eye cx={118} cy={112} expr={expr} side={1} />
 
       {/* Näschen */}
       <path d="M99 126 q1.5 2.5 -1 4" fill="none" stroke="#E6B89C" strokeWidth="2" strokeLinecap="round" />

@@ -2,7 +2,7 @@
 // Erhöhe die Versionsnummer bei jedem Release. Da skipWaiting() + clients.claim()
 // genutzt werden, aktiviert sich ein neuer Service Worker sofort und übernimmt
 // alle offenen Tabs – kein manuelles Neuinstallieren nötig.
-const CACHE_NAME = 'versus-v1.0.6';
+const CACHE_NAME = 'versus-v1.0.7';
 
 self.addEventListener('install', () => self.skipWaiting());
 

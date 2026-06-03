@@ -58,7 +58,7 @@ export default function InfoModal({ onClose, onLogout, user }) {
 
         <h3>App</h3>
         <p className="subtitle" style={{ marginBottom: 10 }}>
-          Version <strong>1.0.6</strong>. Falls eine neue Version nicht
+          Version <strong>1.0.7</strong>. Falls eine neue Version nicht
           automatisch erscheint, hier frisch laden:
         </p>
         <button className="btn btn-ghost" onClick={handleForceUpdate}>
@@ -67,6 +67,8 @@ export default function InfoModal({ onClose, onLogout, user }) {
 
         <h3>Changelog</h3>
         <ul>
+          <li className="changelog-item">v1.0.7 – VERAs Augen-Fix</li>
+          <li>VERA hat jetzt richtige Anime-Augen (Pupillen sichtbar)</li>
           <li className="changelog-item">v1.0.6 – Süße VERA &amp; Bugfixes</li>
           <li>VERA neu: süßes Anime-Mädchen im Hasen-Hoodie, voll sichtbar</li>
           <li>Antwort erst nach „Antwort bestätigen" (kein Fehltipp mehr)</li>
