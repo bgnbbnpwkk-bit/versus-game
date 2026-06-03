@@ -5,8 +5,8 @@ import {
   QUESTIONS_PER_ROUND,
 } from './config.js'
 import { signInWithGoogle, signOutUser, onAuthEmail } from './firebaseAuth.js'
-import { getCategoryByName, randomCategory } from './data/categories.js'
-import { generateQuestion, generateComment } from './geminiApi.js'
+import { getCategoryByName, getCategoryById, buildCategoryPlan } from './data/categories.js'
+import { generateQuestion, generateComment, normalizeQuestion } from './geminiApi.js'
 import {
   createRoom,
   joinRoom,
@@ -24,6 +24,24 @@ import ResultScreen from './components/ResultScreen.jsx'
 import InfoModal from './components/InfoModal.jsx'
 
 const HIGHSCORE_KEY = 'versus_highscore'
+const RECENT_Q_KEY = 'versus_recent_questions'
+const RECENT_Q_MAX = 45
+
+// Zuletzt gestellte Fragen (normalisiert) – rundenübergreifend, pro Gerät.
+function loadRecentQuestions() {
+  try {
+    return JSON.parse(localStorage.getItem(RECENT_Q_KEY) || '[]')
+  } catch {
+    return []
+  }
+}
+function saveRecentQuestions(list) {
+  try {
+    localStorage.setItem(RECENT_Q_KEY, JSON.stringify(list.slice(-RECENT_Q_MAX)))
+  } catch {
+    /* ignore */
+  }
+}
 
 // --- Punkte-Logik ---
 function computeResult(marcIdx, melliIdx, correctIndex) {
@@ -172,12 +190,18 @@ export default function App() {
   const startRound = useCallback(async () => {
     setBusy(true)
     try {
-      const cat = randomCategory()
-      const q = await generateQuestion(cat)
+      const recent = loadRecentQuestions()
+      const plan = buildCategoryPlan(QUESTIONS_PER_ROUND)
+      const cat = getCategoryById(plan[0])
+      const q = await generateQuestion(cat, recent)
+      const norm = normalizeQuestion(q.text)
+      saveRecentQuestions([...recent, norm])
       await updateRoom(roomCode, {
         state: 'question',
         questionNumber: 1,
         currentQuestion: q,
+        categoryPlan: plan,
+        usedQuestions: [norm],
         answerMarc: null,
         answerMelli: null,
         veraComment: null,
@@ -201,12 +225,23 @@ export default function App() {
       if (room.questionNumber >= QUESTIONS_PER_ROUND) {
         await updateRoom(roomCode, { state: 'finished' })
       } else {
-        const cat = randomCategory()
-        const q = await generateQuestion(cat)
+        const plan =
+          room.categoryPlan && room.categoryPlan.length >= QUESTIONS_PER_ROUND
+            ? room.categoryPlan
+            : buildCategoryPlan(QUESTIONS_PER_ROUND)
+        const nextNum = room.questionNumber + 1
+        const cat = getCategoryById(plan[nextNum - 1])
+        const recent = loadRecentQuestions()
+        const used = room.usedQuestions || []
+        const q = await generateQuestion(cat, [...used, ...recent])
+        const norm = normalizeQuestion(q.text)
+        saveRecentQuestions([...recent, norm])
         await updateRoom(roomCode, {
           state: 'question',
-          questionNumber: room.questionNumber + 1,
+          questionNumber: nextNum,
           currentQuestion: q,
+          categoryPlan: plan,
+          usedQuestions: [...used, norm],
           answerMarc: null,
           answerMelli: null,
           veraComment: null,

@@ -1,4 +1,4 @@
-// Auflösung: beide Antworten aufgedeckt, richtige grün/falsche rot, Punkte + VERA-Kommentar.
+// Auflösung: VERAs Reaktion + Punkte zuerst (oben), dann die Detail-Aufschlüsselung.
 import React from 'react'
 import { PLAYERS, QUESTIONS_PER_ROUND } from '../config.js'
 import VeraStage from './VeraStage.jsx'
@@ -28,7 +28,22 @@ export default function RevealScreen({ room, user, isHost, onNext, busy }) {
         </span>
       </div>
 
-      <h2 className="q-text">{q.text}</h2>
+      {/* VERAs Reaktion zuerst – sie steht im Mittelpunkt */}
+      <VeraStage expression={veraExpressionForPoints(pts)} line={room.veraComment} size={120} compact />
+
+      {pts.team > 0 ? (
+        <div className="points-badge points-team" style={{ marginTop: 14 }}>
+          +{pts.team} {pts.team === 2 ? 'Punkte – perfekte Harmonie! 🎯' : 'für das Team'}
+        </div>
+      ) : (
+        <div className="points-badge points-ki" style={{ marginTop: 14 }}>
+          +{pts.ki} Punkt für VERA 😈
+        </div>
+      )}
+
+      <h2 className="q-text" style={{ marginTop: 18 }}>
+        {q.text}
+      </h2>
 
       <div className="options">
         {q.options.map((opt, i) => {
@@ -37,14 +52,10 @@ export default function RevealScreen({ room, user, isHost, onNext, busy }) {
           return (
             <div key={i} className={`option ${cls}`} style={{ cursor: 'default' }}>
               <span className="letter">{LETTERS[i]}</span>
-              <span>{opt}</span>
+              <span className="opt-text">{opt}</span>
               <span className="marker">
-                {marc === i && (
-                  <span style={{ color: PLAYERS.marc.color }}>{PLAYERS.marc.emoji}</span>
-                )}{' '}
-                {melli === i && (
-                  <span style={{ color: PLAYERS.melli.color }}>{PLAYERS.melli.emoji}</span>
-                )}{' '}
+                {marc === i && <span style={{ color: PLAYERS.marc.color }}>{PLAYERS.marc.emoji}</span>}{' '}
+                {melli === i && <span style={{ color: PLAYERS.melli.color }}>{PLAYERS.melli.emoji}</span>}{' '}
                 {isCorrect && '✓'}
               </span>
             </div>
@@ -69,22 +80,6 @@ export default function RevealScreen({ room, user, isHost, onNext, busy }) {
             {melli != null ? `${LETTERS[melli]} ${melli === correct ? '✅' : '❌'}` : '–'}
           </div>
         </div>
-      </div>
-
-      {pts.team > 0 ? (
-        <div className="points-badge points-team">
-          +{pts.team} {pts.team === 2 ? 'Punkte – perfekte Harmonie! 🎯' : 'für das Team'}
-        </div>
-      ) : (
-        <div className="points-badge points-ki">+{pts.ki} Punkt für VERA 😈</div>
-      )}
-
-      <div style={{ marginTop: 16 }}>
-        <VeraStage
-          expression={veraExpressionForPoints(pts)}
-          line={room.veraComment}
-          size={130}
-        />
       </div>
 
       <div style={{ marginTop: 18 }}>

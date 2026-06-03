@@ -460,6 +460,30 @@ body {
   font-size: 14px;
 }
 
+/* Status unter den Optionen – feste Höhe, damit sich nichts verschiebt */
+.q-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 56px;
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-weight: 600;
+  color: var(--text-soft);
+  font-size: 14.5px;
+  text-align: center;
+}
+.option .opt-text {
+  flex: 1;
+}
+.option .marker {
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
 /* VERA-Bühne ("sitzt gegenüber") ------------------------------------ */
 .vera-stage {
   position: relative;

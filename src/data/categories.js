@@ -57,8 +57,44 @@ export function getCategoryByName(name) {
   return CATEGORIES.find((c) => c.name === name) || CATEGORIES[0]
 }
 
+export function getCategoryById(id) {
+  return CATEGORIES.find((c) => c.id === id) || CATEGORIES[0]
+}
+
 export function randomCategory() {
   return CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)]
+}
+
+function shuffle(arr) {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+// Erzeugt eine faire Kategorie-Reihenfolge für eine Runde:
+// jede der 8 Kategorien kommt einmal vor (gemischt), erst danach Wiederholungen –
+// nie zweimal dieselbe Kategorie direkt hintereinander.
+export function buildCategoryPlan(n) {
+  const ids = CATEGORIES.map((c) => c.id)
+  let plan = shuffle(ids)
+  while (plan.length < n) {
+    const extra = shuffle(ids)
+    for (const id of extra) {
+      if (plan.length >= n) break
+      if (plan[plan.length - 1] !== id) plan.push(id)
+    }
+  }
+  // Sicherheitscheck gegen direkte Wiederholungen
+  for (let i = 1; i < plan.length; i++) {
+    if (plan[i] === plan[i - 1]) {
+      const swap = plan.findIndex((id, k) => k > i && id !== plan[i - 1] && id !== plan[i + 1])
+      if (swap > -1) [plan[i], plan[swap]] = [plan[swap], plan[i]]
+    }
+  }
+  return plan.slice(0, n)
 }
 
 // Liefert einen Hinweis für VERA passend zur Kategorie-Stärke.

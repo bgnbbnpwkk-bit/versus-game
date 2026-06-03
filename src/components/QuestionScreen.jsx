@@ -1,5 +1,6 @@
 // Fragebildschirm: geheime Abstimmung. Eigene Antwort sichtbar, Partner-Antwort nicht.
-import React from 'react'
+// Wichtig: feste Layout-Höhen, damit sich beim Antworten NICHTS verschiebt.
+import React, { useEffect, useState } from 'react'
 import { PLAYERS, QUESTIONS_PER_ROUND } from '../config.js'
 import VeraStage from './VeraStage.jsx'
 import { pickQuestionTaunt } from './Vera.jsx'
@@ -8,6 +9,14 @@ const LETTERS = ['A', 'B', 'C', 'D']
 
 export default function QuestionScreen({ room, user, onAnswer }) {
   const q = room.currentQuestion
+
+  // Lokale Antwort-Sperre: einmal getippt bleibt es gewählt/gesperrt, auch wenn
+  // ein Polling-Zyklus den Serverwert kurz noch nicht enthält (kein Flackern).
+  const [pick, setPick] = useState(null)
+  useEffect(() => {
+    setPick(null)
+  }, [room.questionNumber])
+
   if (!q) {
     return (
       <div className="screen">
@@ -19,7 +28,9 @@ export default function QuestionScreen({ room, user, onAnswer }) {
     )
   }
 
-  const myAnswer = user.id === 'marc' ? room.answerMarc : room.answerMelli
+  const serverAnswer = user.id === 'marc' ? room.answerMarc : room.answerMelli
+  const hasServer = serverAnswer !== null && serverAnswer !== undefined
+  const myAnswer = hasServer ? serverAnswer : pick
   const partnerAnswer = user.id === 'marc' ? room.answerMelli : room.answerMarc
   const partner = user.id === 'marc' ? PLAYERS.melli : PLAYERS.marc
   const hasAnswered = myAnswer !== null && myAnswer !== undefined
@@ -27,14 +38,18 @@ export default function QuestionScreen({ room, user, onAnswer }) {
 
   const color = q.categoryColor || '#2563eb'
 
-  const bothAnswered = hasAnswered && partnerAnswered
+  const handlePick = (i) => {
+    if (hasAnswered) return
+    setPick(i)
+    onAnswer(i)
+  }
 
   return (
     <div className="screen">
       <VeraStage
-        expression={bothAnswered ? 'think' : 'smug'}
+        expression={hasAnswered && partnerAnswered ? 'think' : 'smug'}
         line={pickQuestionTaunt(room.questionNumber)}
-        size={120}
+        size={104}
         compact
       />
 
@@ -60,20 +75,21 @@ export default function QuestionScreen({ room, user, onAnswer }) {
               className={`option ${selected ? 'selected' : ''}`}
               style={selected ? { '--accent': color } : undefined}
               disabled={hasAnswered}
-              onClick={() => onAnswer(i)}
+              onClick={() => handlePick(i)}
             >
               <span className="letter">{LETTERS[i]}</span>
-              <span>{opt}</span>
-              {selected && <span className="marker">✓ deine Wahl</span>}
+              <span className="opt-text">{opt}</span>
+              {selected && <span className="marker">✓</span>}
             </button>
           )
         })}
       </div>
 
-      {hasAnswered && (
-        <div className="wait-indicator">
-          {partnerAnswered ? (
-            <>Beide bereit – wird aufgedeckt…</>
+      {/* Feste Höhe -> kein Layout-Sprung, wenn jemand antwortet */}
+      <div className="q-status">
+        {hasAnswered ? (
+          partnerAnswered ? (
+            <span>Beide bereit – wird aufgedeckt… ✨</span>
           ) : (
             <>
               <span className="dots">
@@ -81,17 +97,19 @@ export default function QuestionScreen({ room, user, onAnswer }) {
                 <span />
                 <span />
               </span>
-              {partner.name} tippt noch…
+              <span>{partner.name} tippt noch…</span>
             </>
-          )}
-        </div>
-      )}
-
-      {!hasAnswered && partnerAnswered && (
-        <div className="wait-indicator" style={{ color: partner.color }}>
-          {partner.emoji} {partner.name} hat schon geantwortet – du bist dran!
-        </div>
-      )}
+          )
+        ) : partnerAnswered ? (
+          <span style={{ color: partner.color, fontWeight: 700 }}>
+            {partner.emoji} {partner.name} ist fertig – jetzt du!
+          </span>
+        ) : (
+          <span className="muted" style={{ margin: 0 }}>
+            Tippe deine Antwort – ihr entscheidet unabhängig.
+          </span>
+        )}
+      </div>
     </div>
   )
 }

@@ -62,47 +62,70 @@ function extractJson(text) {
   return JSON.parse(slice)
 }
 
-// --- Frage generieren ---
-const QUESTION_SYSTEM_PROMPT = (category) =>
-  `Du bist VERA, eine freche und provokante Quiz-KI. Generiere eine Multiple-Choice-Frage für die Kategorie ${category}.
-Schwierigkeitsgrad: mittel bis schwer.
-Antworte NUR mit einem JSON-Objekt: { "question": "...", "options": ["A", "B", "C", "D"], "correctIndex": 0-3 }
-Keine weiteren Erklärungen. Nur das JSON.`
+// Normalisiert einen Fragetext für den Dublettenvergleich.
+export function normalizeQuestion(text) {
+  return String(text || '')
+    .toLowerCase()
+    .replace(/[^a-zäöüß0-9]/g, '')
+    .slice(0, 80)
+}
 
-export async function generateQuestion(category) {
+// --- Frage generieren ---
+const QUESTION_SYSTEM_PROMPT = (category, avoid) => {
+  let p = `Du bist VERA, eine freche und provokante Quiz-KI. Generiere EINE neue Multiple-Choice-Frage für die Kategorie ${category}.
+Schwierigkeitsgrad: mittel bis schwer. Variiere Thema und Unterbereich stark – sei kreativ und überraschend.`
+  if (avoid && avoid.length) {
+    const list = avoid.slice(-25).join(' | ')
+    p += `\nWICHTIG: Stelle eine DEUTLICH ANDERE Frage als diese bereits gestellten (weder gleich noch sehr ähnlich): ${list}`
+  }
+  p += `\nAntworte NUR mit einem JSON-Objekt: { "question": "...", "options": ["A", "B", "C", "D"], "correctIndex": 0-3 }
+Keine weiteren Erklärungen. Nur das JSON.`
+  return p
+}
+
+export async function generateQuestion(category, avoidList = []) {
+  const avoidSet = new Set(avoidList.map(normalizeQuestion))
   if (hasValidKey()) {
-    try {
-      const text = await callGemini(QUESTION_SYSTEM_PROMPT(category.name), {
-        temperature: 0.95,
-        maxOutputTokens: 500,
-      })
-      const parsed = extractJson(text)
-      if (
-        parsed &&
-        typeof parsed.question === 'string' &&
-        Array.isArray(parsed.options) &&
-        parsed.options.length === 4 &&
-        Number.isInteger(parsed.correctIndex)
-      ) {
-        return {
-          text: parsed.question,
-          options: parsed.options.map(String),
-          correctIndex: Math.max(0, Math.min(3, parsed.correctIndex)),
-          category: category.name,
-          categoryColor: category.color,
+    // Bis zu 3 Versuche, eine nicht-doppelte Frage zu bekommen.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const text = await callGemini(QUESTION_SYSTEM_PROMPT(category.name, avoidList), {
+          temperature: 1.0,
+          maxOutputTokens: 500,
+        })
+        const parsed = extractJson(text)
+        if (
+          parsed &&
+          typeof parsed.question === 'string' &&
+          Array.isArray(parsed.options) &&
+          parsed.options.length === 4 &&
+          Number.isInteger(parsed.correctIndex)
+        ) {
+          const norm = normalizeQuestion(parsed.question)
+          if (avoidSet.has(norm) && attempt < 2) continue // Dublette -> neu versuchen
+          return {
+            text: parsed.question,
+            options: parsed.options.map(String),
+            correctIndex: Math.max(0, Math.min(3, parsed.correctIndex)),
+            category: category.name,
+            categoryColor: category.color,
+          }
         }
+      } catch (err) {
+        console.warn('generateQuestion: Gemini fehlgeschlagen, nutze Fallback.', err)
+        break
       }
-    } catch (err) {
-      console.warn('generateQuestion: Gemini fehlgeschlagen, nutze Fallback.', err)
     }
   }
   // Fallback (z. B. wenn kein API-Key gesetzt ist oder die API zickt)
-  return fallbackQuestion(category)
+  return fallbackQuestion(category, avoidSet)
 }
 
-function fallbackQuestion(category) {
+function fallbackQuestion(category, avoidSet = new Set()) {
   const pool = FALLBACK_QUESTIONS[category.id] || FALLBACK_QUESTIONS.allgemeinwissen
-  const q = pool[Math.floor(Math.random() * pool.length)]
+  const fresh = pool.filter((q) => !avoidSet.has(normalizeQuestion(q.question)))
+  const usePool = fresh.length ? fresh : pool
+  const q = usePool[Math.floor(Math.random() * usePool.length)]
   return {
     text: q.question,
     options: [...q.options],
