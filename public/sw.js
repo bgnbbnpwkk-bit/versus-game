@@ -2,9 +2,14 @@
 // Erhöhe die Versionsnummer bei jedem Release. Da skipWaiting() + clients.claim()
 // genutzt werden, aktiviert sich ein neuer Service Worker sofort und übernimmt
 // alle offenen Tabs – kein manuelles Neuinstallieren nötig.
-const CACHE_NAME = 'versus-v1.0.2';
+const CACHE_NAME = 'versus-v1.0.3';
 
 self.addEventListener('install', () => self.skipWaiting());
+
+// Erlaubt der App, ein wartendes Update sofort zu aktivieren.
+self.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'SKIP_WAITING') self.skipWaiting();
+});
 
 self.addEventListener('activate', (e) =>
   e.waitUntil(

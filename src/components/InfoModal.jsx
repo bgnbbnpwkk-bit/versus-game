@@ -14,6 +14,24 @@ export default function InfoModal({ onClose, onLogout, user }) {
     setTimeout(() => setSaved(false), 1500)
   }
 
+  // Erzwingt frischen Stand: Service Worker updaten, alle Caches löschen, neu laden.
+  const handleForceUpdate = async () => {
+    try {
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.getRegistration()
+        if (reg) await reg.update()
+      }
+      if (window.caches) {
+        const keys = await caches.keys()
+        await Promise.all(keys.map((k) => caches.delete(k)))
+      }
+    } catch {
+      /* ignore */
+    } finally {
+      window.location.reload()
+    }
+  }
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -37,8 +55,20 @@ export default function InfoModal({ onClose, onLogout, user }) {
           <li>PWA: installierbar auf iPhone &amp; Android</li>
         </ul>
 
+        <h3>App</h3>
+        <p className="subtitle" style={{ marginBottom: 10 }}>
+          Version <strong>1.0.3</strong>. Falls eine neue Version nicht
+          automatisch erscheint, hier frisch laden:
+        </p>
+        <button className="btn btn-ghost" onClick={handleForceUpdate}>
+          🔄 App aktualisieren
+        </button>
+
         <h3>Changelog</h3>
         <ul>
+          <li className="changelog-item">v1.0.3 – Zuverlässiges Auto-Update</li>
+          <li>Update-Prüfung beim App-Wechsel (iOS-Fix)</li>
+          <li>Manueller „App aktualisieren"-Button</li>
           <li className="changelog-item">v1.0.2 – VERA bekommt ein Gesicht</li>
           <li>VERA sitzt euch als gezeichnete Figur gegenüber</li>
           <li>Live-Mimik: hämisch, lauernd, schadenfroh, beeindruckt, geschlagen</li>
