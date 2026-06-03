@@ -38,6 +38,11 @@ export default function InfoModal({ onClose, onLogout, user }) {
 
         <h3>Changelog</h3>
         <ul>
+          <li className="changelog-item">v1.0.1 – Auth &amp; Datenbank</li>
+          <li>Login über Firebase Auth SDK (Google Sign-In)</li>
+          <li>Gemini-API-Key im i-Panel eingebbar (localStorage)</li>
+          <li>Realtime-DB-REST-Aufrufe mit Auth-Token (Fix für 401)</li>
+          <li>Klartext-Fehlermeldungen bei DB-Problemen</li>
           <li className="changelog-item">v1.0.0 – Initiale Version</li>
           <li>Grundspiel mit 8 Kategorien</li>
           <li>VERA als freche KI-Gegnerin</li>

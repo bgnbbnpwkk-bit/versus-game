@@ -10,38 +10,52 @@ const BASE = FIREBASE.databaseURL.replace(/\/$/, '')
 
 // Hängt das Firebase-ID-Token an, damit geschützte DB-Regeln (auth != null)
 // die REST-Aufrufe akzeptieren.
-async function roomUrl(roomCode, childPath = '') {
-  const child = childPath ? `/${childPath}` : ''
+async function explainError(method, res, hadToken) {
+  let detail = ''
+  try {
+    const body = await res.json()
+    if (body && body.error) detail = body.error
+  } catch {
+    /* ignore */
+  }
+  const tokenInfo = hadToken ? '' : ' [kein Auth-Token!]'
+  // Klartext-Hinweis bei Berechtigungsproblemen.
+  if (res.status === 401 || res.status === 403) {
+    return `Firebase ${method} verweigert (${res.status}${tokenInfo}): ${
+      detail || 'Permission denied'
+    } – bitte DB-Regeln für /versus prüfen.`
+  }
+  return `Firebase ${method} fehlgeschlagen (${res.status}${tokenInfo})${
+    detail ? ': ' + detail : ''
+  }`
+}
+
+async function dbRequest(method, roomCode, { data, childPath = '' } = {}) {
   const token = await getIdToken()
-  const auth = token ? `?auth=${token}` : ''
-  return `${BASE}/versus/${roomCode}${child}.json${auth}`
+  const child = childPath ? `/${childPath}` : ''
+  const authQ = token ? `?auth=${token}` : ''
+  const url = `${BASE}/versus/${roomCode}${child}.json${authQ}`
+  const opts = { method }
+  if (data !== undefined) {
+    opts.headers = { 'Content-Type': 'application/json' }
+    opts.body = JSON.stringify(data)
+  }
+  const res = await fetch(url, opts)
+  if (!res.ok) throw new Error(await explainError(method, res, !!token))
+  return res.json()
 }
 
 // --- Low-level Helpers ---
 async function dbGet(roomCode, childPath = '') {
-  const res = await fetch(await roomUrl(roomCode, childPath), { method: 'GET' })
-  if (!res.ok) throw new Error(`Firebase GET fehlgeschlagen (${res.status})`)
-  return res.json()
+  return dbRequest('GET', roomCode, { childPath })
 }
 
 async function dbPut(roomCode, data, childPath = '') {
-  const res = await fetch(await roomUrl(roomCode, childPath), {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
-  if (!res.ok) throw new Error(`Firebase PUT fehlgeschlagen (${res.status})`)
-  return res.json()
+  return dbRequest('PUT', roomCode, { data, childPath })
 }
 
 async function dbPatch(roomCode, data, childPath = '') {
-  const res = await fetch(await roomUrl(roomCode, childPath), {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
-  if (!res.ok) throw new Error(`Firebase PATCH fehlgeschlagen (${res.status})`)
-  return res.json()
+  return dbRequest('PATCH', roomCode, { data, childPath })
 }
 
 // --- Raumcode-Generierung (4-stellig) ---
