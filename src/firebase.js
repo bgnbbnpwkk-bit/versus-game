@@ -4,23 +4,28 @@
 // Pfad-Schema: /versus/{roomCode}
 // =====================================================================
 import { FIREBASE } from './config.js'
+import { getIdToken } from './firebaseAuth.js'
 
 const BASE = FIREBASE.databaseURL.replace(/\/$/, '')
 
-function roomUrl(roomCode, childPath = '') {
+// Hängt das Firebase-ID-Token an, damit geschützte DB-Regeln (auth != null)
+// die REST-Aufrufe akzeptieren.
+async function roomUrl(roomCode, childPath = '') {
   const child = childPath ? `/${childPath}` : ''
-  return `${BASE}/versus/${roomCode}${child}.json`
+  const token = await getIdToken()
+  const auth = token ? `?auth=${token}` : ''
+  return `${BASE}/versus/${roomCode}${child}.json${auth}`
 }
 
 // --- Low-level Helpers ---
 async function dbGet(roomCode, childPath = '') {
-  const res = await fetch(roomUrl(roomCode, childPath), { method: 'GET' })
+  const res = await fetch(await roomUrl(roomCode, childPath), { method: 'GET' })
   if (!res.ok) throw new Error(`Firebase GET fehlgeschlagen (${res.status})`)
   return res.json()
 }
 
 async function dbPut(roomCode, data, childPath = '') {
-  const res = await fetch(roomUrl(roomCode, childPath), {
+  const res = await fetch(await roomUrl(roomCode, childPath), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -30,7 +35,7 @@ async function dbPut(roomCode, data, childPath = '') {
 }
 
 async function dbPatch(roomCode, data, childPath = '') {
-  const res = await fetch(roomUrl(roomCode, childPath), {
+  const res = await fetch(await roomUrl(roomCode, childPath), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),

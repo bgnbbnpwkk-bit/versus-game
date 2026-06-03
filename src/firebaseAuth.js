@@ -44,3 +44,15 @@ export function signOutUser() {
 export function onAuthEmail(callback) {
   return onAuthStateChanged(auth, (u) => callback(u ? u.email : null))
 }
+
+// Liefert das aktuelle Firebase-ID-Token (für authentifizierte Realtime-DB-
+// REST-Aufrufe via ?auth=<token>). Wird bei Bedarf automatisch erneuert.
+export async function getIdToken() {
+  const u = auth.currentUser
+  if (!u) return null
+  try {
+    return await u.getIdToken()
+  } catch {
+    return null
+  }
+}
