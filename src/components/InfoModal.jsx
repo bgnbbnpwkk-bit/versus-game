@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { getGeminiKey, setGeminiKey } from '../geminiApi.js'
 
-export default function InfoModal({ onClose, onLogout, user }) {
+export default function InfoModal({ onClose, onLogout, user, soloTest, onToggleSolo }) {
   const [keyInput, setKeyInput] = useState(getGeminiKey())
   const [saved, setSaved] = useState(false)
   const hasKey = !!getGeminiKey()
@@ -58,15 +58,36 @@ export default function InfoModal({ onClose, onLogout, user }) {
 
         <h3>App</h3>
         <p className="subtitle" style={{ marginBottom: 10 }}>
-          Version <strong>1.0.9</strong>. Falls eine neue Version nicht
+          Version <strong>1.0.10</strong>. Falls eine neue Version nicht
           automatisch erscheint, hier frisch laden:
         </p>
         <button className="btn btn-ghost" onClick={handleForceUpdate}>
           🔄 App aktualisieren
         </button>
 
+        <h3>Solo-Test</h3>
+        <p className="subtitle" style={{ marginBottom: 10 }}>
+          Allein testen: Die App simuliert den Partner automatisch (ist sofort
+          „da" und antwortet zufällig), damit du den ganzen Ablauf ohne zweites
+          Handy durchspielen kannst.
+        </p>
+        <button
+          className={soloTest ? 'btn btn-melli' : 'btn btn-ghost'}
+          onClick={onToggleSolo}
+        >
+          {soloTest ? '🧪 Solo-Test: AN (zum Deaktivieren tippen)' : '🧪 Solo-Test aktivieren'}
+        </button>
+        {soloTest && (
+          <p className="config-note" style={{ marginTop: 8 }}>
+            Tipp: Erstelle einen Raum – der Partner erscheint automatisch, dann
+            „Spiel starten". Für echtes Spiel zu zweit bitte wieder ausschalten.
+          </p>
+        )}
+
         <h3>Changelog</h3>
         <ul>
+          <li className="changelog-item">v1.0.10 – Solo-Test-Modus</li>
+          <li>Allein testen: App simuliert den Partner automatisch</li>
           <li className="changelog-item">v1.0.9 – Kein Versions-Rücksprung mehr</li>
           <li>Seite kommt immer frisch aus dem Netz (kein alter Cache)</li>
           <li className="changelog-item">v1.0.8 – Frischere Fragen</li>

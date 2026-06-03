@@ -26,6 +26,7 @@ import InfoModal from './components/InfoModal.jsx'
 const HIGHSCORE_KEY = 'versus_highscore'
 const RECENT_Q_KEY = 'versus_recent_questions'
 const RECENT_Q_MAX = 45
+const SOLO_KEY = 'versus_solo'
 
 // Zuletzt gestellte Fragen (normalisiert) – rundenübergreifend, pro Gerät.
 function loadRecentQuestions() {
@@ -65,17 +66,34 @@ export default function App() {
   const [lobbyError, setLobbyError] = useState('')
   const [showInfo, setShowInfo] = useState(false)
   const [highscore, setHighscore] = useState(null)
+  const [soloTest, setSoloTest] = useState(false)
 
   const revealingRef = useRef(false)
+  const roomRef = useRef(null)
+  roomRef.current = room
 
-  // --- Highscore aus localStorage laden ---
+  // --- Highscore & Solo-Test aus localStorage laden ---
   useEffect(() => {
     try {
       const hs = localStorage.getItem(HIGHSCORE_KEY)
       if (hs != null) setHighscore(Number(hs))
+      setSoloTest(!!localStorage.getItem(SOLO_KEY))
     } catch {
       /* ignore */
     }
+  }, [])
+
+  const toggleSolo = useCallback(() => {
+    setSoloTest((v) => {
+      const nv = !v
+      try {
+        if (nv) localStorage.setItem(SOLO_KEY, '1')
+        else localStorage.removeItem(SOLO_KEY)
+      } catch {
+        /* ignore */
+      }
+      return nv
+    })
   }, [])
 
   // --- Auth-Status über Firebase Auth SDK beobachten ---
@@ -335,6 +353,36 @@ export default function App() {
     }
   }, [room?.state, room?.scores?.team])
 
+  // --- Solo-Test: simulierten Partner anwesend setzen ---
+  useEffect(() => {
+    if (!soloTest || !isHost || !roomCode) return
+    const r = room
+    if (!r || r.state !== 'waiting') return
+    const partnerId = user.id === 'marc' ? 'melli' : 'marc'
+    if (r.players?.[partnerId]) return
+    updateRoom(roomCode, {
+      players: { ...(r.players || {}), [partnerId]: true },
+    }).catch(() => {})
+  }, [soloTest, isHost, roomCode, user, room?.state])
+
+  // --- Solo-Test: Partner antwortet automatisch (zufällig) ---
+  useEffect(() => {
+    if (!soloTest || !isHost || !roomCode || !user) return
+    const r = room
+    if (!r || r.state !== 'question' || !r.currentQuestion) return
+    const partnerField = user.id === 'marc' ? 'answerMelli' : 'answerMarc'
+    if (r[partnerField] != null) return
+    // Deps nur auf state/questionNumber -> Timer wird nicht bei jedem Poll gecancelt.
+    const t = setTimeout(() => {
+      const cur = roomRef.current
+      if (!cur || cur.state !== 'question') return
+      if (cur[partnerField] != null) return
+      const pid = user.id === 'marc' ? 'melli' : 'marc'
+      submitAnswer(roomCode, pid, Math.floor(Math.random() * 4)).catch(() => {})
+    }, 1000 + Math.random() * 800)
+    return () => clearTimeout(t)
+  }, [soloTest, isHost, roomCode, user, room?.state, room?.questionNumber])
+
   // --- Render ---
   function renderContent() {
     if (!user) {
@@ -421,7 +469,13 @@ export default function App() {
       {renderContent()}
 
       {showInfo && (
-        <InfoModal onClose={() => setShowInfo(false)} onLogout={handleLogout} user={user} />
+        <InfoModal
+          onClose={() => setShowInfo(false)}
+          onLogout={handleLogout}
+          user={user}
+          soloTest={soloTest}
+          onToggleSolo={toggleSolo}
+        />
       )}
     </div>
   )
