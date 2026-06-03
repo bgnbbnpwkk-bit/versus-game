@@ -57,7 +57,7 @@ export default function InfoModal({ onClose, onLogout, user }) {
 
         <h3>App</h3>
         <p className="subtitle" style={{ marginBottom: 10 }}>
-          Version <strong>1.0.3</strong>. Falls eine neue Version nicht
+          Version <strong>1.0.4</strong>. Falls eine neue Version nicht
           automatisch erscheint, hier frisch laden:
         </p>
         <button className="btn btn-ghost" onClick={handleForceUpdate}>
@@ -66,6 +66,10 @@ export default function InfoModal({ onClose, onLogout, user }) {
 
         <h3>Changelog</h3>
         <ul>
+          <li className="changelog-item">v1.0.4 – VERA im Manga-Style</li>
+          <li>Frecher, überheblicher „smug"-Blick als Standard</li>
+          <li>Große Anime-Augen mit Glanzlichtern, spitze Frisur</li>
+          <li>Manga-Reaktionen: fieses Lachen, Funkel-Augen, Anime-Träne</li>
           <li className="changelog-item">v1.0.3 – Zuverlässiges Auto-Update</li>
           <li>Update-Prüfung beim App-Wechsel (iOS-Fix)</li>
           <li>Manueller „App aktualisieren"-Button</li>
