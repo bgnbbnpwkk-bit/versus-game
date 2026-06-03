@@ -1,44 +1,22 @@
 // =====================================================================
-// VERA – gezeichnete SVG-Figur im Manga/Anime-Stil.
-// Freche, überhebliche KI-Rivalin, die euch am "Tisch" gegenübersitzt.
+// VERA – süße Anime-Figur im gelben Hasen-Hoodie (Kigurumi-Style).
+// Sitzt euch gegenüber und reagiert mit niedlicher Mimik.
 // expression: 'smug' | 'think' | 'gloat' | 'impressed' | 'angry'
 //           | 'defeated' | 'neutral'
 // =====================================================================
 import React from 'react'
 
-const SKIN = '#FBEFFF'
-const LASH = '#2B1A47'
-const LIP = '#EC4899'
+const SKIN = '#FCE7D6'
+const LASH = '#4A3320'
+const LIP = '#D9776B'
 
-// --- Augenbrauen (dünn, manga) ---
-function Brows({ expr }) {
-  // [linke Braue, rechte Braue]
-  const map = {
-    neutral: ['M58 78 Q74 73 90 77', 'M110 77 Q126 73 142 78'],
-    // smug: rechte Braue hochgezogen
-    smug: ['M58 80 Q74 76 90 79', 'M110 70 Q126 63 142 69'],
-    think: ['M58 81 Q74 78 90 80', 'M110 69 Q126 62 142 68'],
-    angry: ['M58 74 Q74 79 92 84', 'M108 84 Q126 79 142 74'],
-    impressed: ['M58 70 Q74 62 90 68', 'M110 68 Q126 62 142 70'],
-    defeated: ['M58 82 Q74 74 92 78', 'M108 78 Q126 74 142 82'],
-    gloat: ['M58 75 Q74 71 90 75', 'M110 75 Q126 71 142 75'],
-  }
-  const [l, r] = map[expr] || map.neutral
-  return (
-    <g stroke={LASH} strokeWidth="3.4" strokeLinecap="round" fill="none">
-      <path d={l} />
-      <path d={r} />
-    </g>
-  )
-}
-
-// --- Ein großes Manga-Auge ---
+// --- Augen (groß, rund, anime) ---
 function Eye({ cx, cy, expr, side }) {
-  // Geschlossene, fiese Lach-Augen (∧)
   if (expr === 'gloat') {
+    // fröhlich geschlossen (^^)
     return (
       <path
-        d={`M${cx - 16} ${cy + 5} Q${cx} ${cy - 11} ${cx + 16} ${cy + 5}`}
+        d={`M${cx - 13} ${cy + 3} Q${cx} ${cy - 9} ${cx + 13} ${cy + 3}`}
         fill="none"
         stroke={LASH}
         strokeWidth="4.5"
@@ -46,123 +24,80 @@ function Eye({ cx, cy, expr, side }) {
       />
     )
   }
-
   const wide = expr === 'impressed'
-  const rx = wide ? 18 : 16
-  const ry = wide ? 24 : 22
-
-  const half = expr === 'smug' || expr === 'angry' || expr === 'defeated'
-  const lidDrop = expr === 'defeated' ? ry * 0.72 : half ? ry * 0.5 : 0
-  const lookY = expr === 'think' ? -5 : expr === 'defeated' ? 4 : expr === 'smug' ? 3 : 0
-  const lidY = cy - ry + lidDrop
-  const outerX = side < 0 ? cx - rx : cx + rx
+  const rx = wide ? 15 : 13
+  const ry = wide ? 20 : 17
+  const half = expr === 'smug' || expr === 'angry'
+  const lidDrop = half ? ry * 0.42 : 0
+  const lookX = expr === 'smug' ? side * 2 : 0
+  const lookY = expr === 'think' ? -4 : 0
 
   return (
     <g>
-      {/* Sklera */}
       <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill="#fff" />
-      {/* Iris (hoch, anime) */}
-      <ellipse cx={cx} cy={cy + lookY + 2} rx={rx - 3} ry={ry - 2} fill="url(#veraIris)" />
-      <ellipse cx={cx} cy={cy + lookY + 4} rx={rx - 8} ry={ry - 8} fill="#3B1D6E" />
-      <circle cx={cx} cy={cy + lookY + 8} r="3.4" fill="#1B0E3A" />
-      {/* Glanzlichter */}
-      <circle cx={cx - 5} cy={cy + lookY - 7} r="5.5" fill="#fff" />
-      <circle cx={cx + 5} cy={cy + lookY + 9} r="2.6" fill="#fff" opacity="0.9" />
+      <ellipse cx={cx + lookX} cy={cy + lookY + 1} rx={rx - 1.5} ry={ry - 1.5} fill="url(#veraIris)" />
+      <circle cx={cx + lookX} cy={cy + lookY + 3} r={rx - 6} fill="#3A2410" />
+      <circle cx={cx + lookX - 4} cy={cy + lookY - 5} r="4.6" fill="#fff" />
+      <circle cx={cx + lookX + 4} cy={cy + lookY + 6} r="2.4" fill="#fff" opacity="0.9" />
 
-      {/* Oberlid (Hautfarbe) zum Abschneiden bei halb geschlossenen Augen */}
       {lidDrop > 0 && (
-        <rect x={cx - rx - 4} y={cy - ry - 12} width={rx * 2 + 8} height={lidDrop + 12} fill={SKIN} />
+        <rect x={cx - rx - 3} y={cy - ry - 10} width={rx * 2 + 6} height={lidDrop + 10} fill={SKIN} />
       )}
 
-      {/* Obere Wimpernlinie (dick) + äußerer Schwung */}
+      {/* obere Wimpernlinie */}
       <path
         d={
           lidDrop > 0
-            ? `M${cx - rx} ${lidY + 1} Q${cx} ${lidY - 3} ${cx + rx} ${lidY + 1}`
-            : `M${cx - rx} ${cy - 1} Q${cx} ${cy - ry - 3} ${cx + rx} ${cy - 1}`
+            ? `M${cx - rx} ${cy - ry + lidDrop} Q${cx} ${cy - ry + lidDrop - 3} ${cx + rx} ${cy - ry + lidDrop}`
+            : `M${cx - rx - 1} ${cy - ry + 3} Q${cx} ${cy - ry - 4} ${cx + rx + 1} ${cy - ry + 3}`
         }
-        fill="none"
-        stroke={LASH}
-        strokeWidth="4.5"
-        strokeLinecap="round"
-      />
-      {/* Äußerer Wimpern-Flick */}
-      <path
-        d={`M${outerX} ${lidDrop > 0 ? lidY : cy - 1} q${side * 6} ${-7} ${side * 11} ${-9}`}
         fill="none"
         stroke={LASH}
         strokeWidth="4"
         strokeLinecap="round"
       />
 
-      {/* Anime-Träne bei "besiegt" */}
+      {/* Anime-Tränen bei "besiegt" */}
       {expr === 'defeated' && (
-        <path
-          d={`M${cx + 9} ${cy + ry - 2} q-4 8 0 12 q4 -4 0 -12 Z`}
-          fill="#7DD3FC"
-          opacity="0.9"
-        />
+        <path d={`M${cx} ${cy + ry - 1} q-3 7 0 11 q3 -4 0 -11 Z`} fill="#7DD3FC" />
       )}
     </g>
   )
 }
 
-// --- Mund (klein, manga) ---
+// --- Mund (klein, niedlich) ---
 function Mouth({ expr }) {
   switch (expr) {
     case 'gloat':
-      // breites, fieses Grinsen mit kleinem Fang
       return (
-        <g>
-          <path d="M86 126 Q100 142 114 126 Q100 134 86 126 Z" fill="#6D1B3E" />
-          <path d="M86 126 Q100 142 114 126" fill="none" stroke={LASH} strokeWidth="2.4" strokeLinecap="round" />
-          <path d="M104 130 L108 130 L106 136 Z" fill="#fff" />
-        </g>
+        <path d="M91 137 Q100 147 109 137 Q100 141 91 137 Z" fill="#B45B4E" />
       )
     case 'impressed':
-      return <ellipse cx="100" cy="130" rx="5.5" ry="7" fill="#6D1B3E" />
+      return <ellipse cx="100" cy="138" rx="4.5" ry="6" fill="#B45B4E" />
     case 'think':
-      return (
-        <path d="M92 130 Q100 127 108 131" fill="none" stroke={LIP} strokeWidth="3.4" strokeLinecap="round" />
-      )
+      return <path d="M94 138 Q100 136 106 139" fill="none" stroke={LIP} strokeWidth="3" strokeLinecap="round" />
     case 'defeated':
-      // zittriger Mund
       return (
-        <path
-          d="M90 131 q4 -4 8 0 q4 4 8 0 q3 -3 4 0"
-          fill="none"
-          stroke={LIP}
-          strokeWidth="3.2"
-          strokeLinecap="round"
-        />
+        <path d="M92 139 q4 -4 8 0 q4 4 8 0" fill="none" stroke={LIP} strokeWidth="3" strokeLinecap="round" />
       )
     case 'angry':
-      return (
-        <path d="M91 132 Q100 127 109 132" fill="none" stroke={LIP} strokeWidth="3.4" strokeLinecap="round" />
-      )
+      return <path d="M94 140 Q100 135 106 140" fill="none" stroke={LIP} strokeWidth="3.2" strokeLinecap="round" />
     case 'smug':
-      // schiefer Smirk
-      return (
-        <path d="M90 132 Q101 135 113 124" fill="none" stroke={LIP} strokeWidth="3.6" strokeLinecap="round" />
-      )
+      return <path d="M93 138 Q101 143 110 135" fill="none" stroke={LIP} strokeWidth="3.2" strokeLinecap="round" />
     case 'neutral':
     default:
-      return (
-        <path d="M91 129 Q100 136 109 129" fill="none" stroke={LIP} strokeWidth="3.4" strokeLinecap="round" />
-      )
+      return <path d="M93 137 Q100 143 107 137" fill="none" stroke={LIP} strokeWidth="3.2" strokeLinecap="round" />
   }
 }
 
-// --- Effekte: Schweißtropfen (think), Wut-Mark (angry) ---
 function Effects({ expr }) {
   if (expr === 'think') {
-    return <path d="M150 70 q-5 8 0 12 q5 -4 0 -12 Z" fill="#7DD3FC" opacity="0.9" />
+    return <path d="M150 86 q-5 8 0 12 q5 -4 0 -12 Z" fill="#7DD3FC" opacity="0.9" />
   }
   if (expr === 'angry') {
     return (
       <g stroke="#EF4444" strokeWidth="3" strokeLinecap="round" fill="none">
-        <path d="M150 56 l10 0 M155 51 l0 10" />
-        <path d="M148 64 l7 -3 M150 70 l7 -2" opacity="0.8" />
+        <path d="M150 70 l10 0 M155 65 l0 10" />
       </g>
     )
   }
@@ -171,94 +106,85 @@ function Effects({ expr }) {
 
 export default function Vera({ expression = 'smug', size = 150, float = true }) {
   const expr = expression
+  const blush = expr === 'angry' ? 0.7 : 0.5
   return (
     <svg
       className={float ? 'vera-svg vera-float' : 'vera-svg'}
       width={size}
-      height={size * 1.1}
-      viewBox="0 0 200 220"
+      height={size}
+      viewBox="0 0 200 210"
       role="img"
       aria-label={`VERA ist ${expr}`}
     >
       <defs>
-        <radialGradient id="veraIris" cx="50%" cy="32%" r="75%">
-          <stop offset="0%" stopColor="#DDD6FE" />
-          <stop offset="55%" stopColor="#8B5CF6" />
-          <stop offset="100%" stopColor="#5B21B6" />
+        <radialGradient id="veraIris" cx="50%" cy="35%" r="70%">
+          <stop offset="0%" stopColor="#B98A5E" />
+          <stop offset="60%" stopColor="#7A4F2B" />
+          <stop offset="100%" stopColor="#4A3320" />
         </radialGradient>
-        <linearGradient id="veraHair" x1="0" y1="0" x2="0.3" y2="1">
-          <stop offset="0%" stopColor="#7C3AED" />
-          <stop offset="100%" stopColor="#1E1B4B" />
+        <linearGradient id="veraHood" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#FCD34D" />
+          <stop offset="100%" stopColor="#F59E0B" />
         </linearGradient>
-        <linearGradient id="veraOutfit" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#6D28D9" />
-          <stop offset="100%" stopColor="#312E81" />
+        <linearGradient id="veraHair" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#7A5636" />
+          <stop offset="100%" stopColor="#4A3320" />
         </linearGradient>
-        <radialGradient id="veraGem" cx="50%" cy="40%" r="60%">
-          <stop offset="0%" stopColor="#F9A8D4" />
-          <stop offset="100%" stopColor="#DB2777" />
-        </radialGradient>
       </defs>
 
-      {/* Schultern / Outfit */}
-      <path d="M38 220 Q40 166 72 154 L128 154 Q160 166 162 220 Z" fill="url(#veraOutfit)" />
-      <path d="M88 150 L112 150 L106 168 L94 168 Z" fill={SKIN} />
-      <path d="M88 150 L100 166 L112 150" fill="none" stroke="#C4B5FD" strokeWidth="2.5" />
+      {/* Körper / Hoodie */}
+      <path d="M34 210 Q36 168 72 158 L128 158 Q164 168 166 210 Z" fill="url(#veraHood)" />
 
-      {/* Haar hinten (lange, spitze Manga-Strähnen) */}
+      {/* Hasen-Ohren */}
+      {/* rechtes, aufrechtes Ohr */}
+      <path d="M120 64 C112 32 122 8 136 13 C152 20 149 52 138 68 Z" fill="url(#veraHood)" />
+      <path d="M126 60 C122 40 128 24 135 27 C143 32 141 50 134 60 Z" fill="#F9A8D4" />
+      {/* linkes, geknicktes Ohr */}
+      <path d="M84 58 C74 36 64 20 50 27 C40 33 46 48 64 54 C72 57 80 60 84 58 Z" fill="url(#veraHood)" />
+      <path d="M80 54 C72 40 62 30 54 34 C49 38 54 47 66 50 C72 52 78 55 80 54 Z" fill="#F9A8D4" />
+
+      {/* Kapuze (hinter dem Gesicht) */}
+      <path d="M48 168 C30 116 40 58 100 54 C160 58 170 116 152 168 C150 120 150 96 130 84 L70 84 C50 96 50 120 48 168 Z" fill="url(#veraHood)" />
+      {/* kleine Hasen-Gesicht-Deko auf der Kapuze */}
+      <circle cx="90" cy="52" r="2.6" fill="#4A3320" />
+      <circle cx="110" cy="52" r="2.6" fill="#4A3320" />
+      <path d="M97 59 Q100 62 103 59" fill="none" stroke="#B45B4E" strokeWidth="2" strokeLinecap="round" />
+
+      {/* Fell-Kragen */}
+      <g fill="#FFF7E6">
+        <circle cx="74" cy="160" r="11" />
+        <circle cx="90" cy="165" r="12" />
+        <circle cx="110" cy="165" r="12" />
+        <circle cx="126" cy="160" r="11" />
+        <circle cx="100" cy="167" r="12" />
+      </g>
+
+      {/* Hals */}
+      <path d="M90 150 L110 150 L107 164 L93 164 Z" fill={SKIN} />
+
+      {/* Gesicht */}
+      <ellipse cx="100" cy="112" rx="42" ry="45" fill={SKIN} />
+
+      {/* Haar-Pony unter der Kapuze */}
       <path
-        d="M44 96 Q40 40 100 32 Q160 40 156 96 Q162 150 150 176 L138 150
-           Q150 120 144 100 L56 100 Q50 120 62 150 L50 176 Q38 150 44 96 Z"
+        d="M60 104 C56 78 72 66 100 66 C128 66 144 78 140 104 C133 86 120 80 112 92
+           C108 80 100 82 100 82 C100 82 92 80 88 92 C80 80 67 86 60 104 Z"
         fill="url(#veraHair)"
       />
-      {/* Seitliche Spitzsträhnen, die das Gesicht rahmen */}
-      <path d="M52 96 L40 168 L58 132 Q56 110 60 100 Z" fill="url(#veraHair)" />
-      <path d="M148 96 L160 168 L142 132 Q144 110 140 100 Z" fill="url(#veraHair)" />
+      {/* seitliche Haarsträhnen */}
+      <path d="M60 104 C54 120 56 138 62 148 C58 126 60 112 64 104 Z" fill="url(#veraHair)" />
+      <path d="M140 104 C146 120 144 138 138 148 C142 126 140 112 136 104 Z" fill="url(#veraHair)" />
 
-      {/* Kopf (spitzes Manga-Kinn) */}
-      <path
-        d="M100 44 C70 44 54 64 54 92 C54 120 62 142 80 156 C88 163 95 167 100 167
-           C105 167 112 163 120 156 C138 142 146 120 146 92 C146 64 130 44 100 44 Z"
-        fill={SKIN}
-      />
-
-      {/* Ohr-LEDs (Anime-Ohrringe) */}
-      <circle cx="55" cy="112" r="4.5" fill="#EC4899" />
-      <circle cx="145" cy="112" r="4.5" fill="#EC4899" />
-
-      {/* Pony – spitze Strähnen über der Stirn */}
-      <g fill="url(#veraHair)">
-        <path d="M50 60 Q56 96 70 92 Q60 74 64 56 Z" />
-        <path d="M66 50 Q70 92 86 90 Q78 70 82 50 Z" />
-        <path d="M86 46 Q86 88 100 86 Q96 66 100 46 Z" />
-        <path d="M100 46 Q104 88 118 84 Q112 64 116 48 Z" />
-        <path d="M116 48 Q124 90 138 88 Q130 70 134 52 Z" />
-        <path d="M134 54 Q146 94 150 60 Q146 56 140 56 Z" />
-      </g>
-      {/* Haar-Glanzstreifen */}
-      <path d="M74 44 Q100 36 126 44 Q100 40 74 44 Z" fill="#A78BFA" opacity="0.7" />
-
-      {/* Stirn-Gem (zwischen den Strähnen) */}
-      <g>
-        <circle cx="100" cy="70" r="7" fill="#DB2777" opacity="0.35" />
-        <path d="M100 64 L104 70 L100 76 L96 70 Z" fill="url(#veraGem)" />
-      </g>
-
-      {/* Headset-Mikro */}
-      <path d="M146 112 Q164 124 148 150" fill="none" stroke="#C7D2FE" strokeWidth="3" strokeLinecap="round" />
-      <circle cx="148" cy="152" r="4.5" fill="#EC4899" />
-
-      <Brows expr={expr} />
-      <Eye cx="74" cy="102" expr={expr} side={-1} />
-      <Eye cx="126" cy="102" expr={expr} side={1} />
+      <Eye cx="82" cy="112" expr={expr} side={-1} />
+      <Eye cx="118" cy="112" expr={expr} side={1} />
 
       {/* Näschen */}
-      <path d="M99 116 q2 3 -1 5" fill="none" stroke="#E9C6F5" strokeWidth="2.2" strokeLinecap="round" />
+      <path d="M99 126 q1.5 2.5 -1 4" fill="none" stroke="#E6B89C" strokeWidth="2" strokeLinecap="round" />
 
-      {/* Dezente Anime-Wangenröte */}
-      <g opacity="0.55">
-        <ellipse cx="66" cy="126" rx="9" ry="4" fill="#F9A8D4" />
-        <ellipse cx="134" cy="126" rx="9" ry="4" fill="#F9A8D4" />
+      {/* Wangenröte */}
+      <g opacity={blush}>
+        <ellipse cx="70" cy="128" rx="9" ry="5.5" fill="#F9A8D4" />
+        <ellipse cx="130" cy="128" rx="9" ry="5.5" fill="#F9A8D4" />
       </g>
 
       <Mouth expr={expr} />

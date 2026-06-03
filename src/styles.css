@@ -483,6 +483,25 @@ body {
   margin-left: auto;
   flex: 0 0 auto;
 }
+/* Bestätigungs-Bereich – feste Höhe, kein Layout-Sprung */
+.q-action {
+  min-height: 60px;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+}
+.q-action .btn {
+  width: 100%;
+}
+.answer-locked {
+  width: 100%;
+  text-align: center;
+  font-weight: 700;
+  color: var(--good);
+  background: color-mix(in srgb, var(--good) 10%, #fff);
+  border-radius: var(--radius);
+  padding: 16px;
+}
 
 /* VERA-Bühne ("sitzt gegenüber") ------------------------------------ */
 .vera-stage {
@@ -517,7 +536,7 @@ body {
 .vera-figure {
   position: relative;
   z-index: 2;
-  margin-bottom: -6px;
+  margin-bottom: 0;
 }
 .vera-svg {
   display: block;
@@ -536,31 +555,17 @@ body {
   }
 }
 .vera-eyelid {
-  transform-box: fill-box;
-  transform-origin: center;
-  transform: scaleY(0);
-  animation: veraBlink 5.5s infinite;
+  display: none;
 }
-@keyframes veraBlink {
-  0%,
-  94%,
-  100% {
-    transform: scaleY(0);
-  }
-  97% {
-    transform: scaleY(1);
-  }
-}
-/* "Tisch"-Kante, hinter der VERA sitzt */
+/* "Tisch"-Kante, hinter der VERA sitzt – flach, verdeckt das Gesicht nicht */
 .vera-desk {
   position: relative;
-  z-index: 3;
-  width: calc(100% + 40px);
-  height: 26px;
-  margin: 0 -20px -1px;
+  z-index: 1;
+  width: calc(100% + 36px);
+  height: 16px;
+  margin: -8px -18px 0;
   background: linear-gradient(180deg, #4f46e5, #4338ca);
   border-top: 2px solid #818cf8;
-  border-radius: 60% 60% 0 0 / 100% 100% 0 0;
 }
 .vera-speech {
   position: relative;

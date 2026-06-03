@@ -1,5 +1,6 @@
-// Fragebildschirm: geheime Abstimmung. Eigene Antwort sichtbar, Partner-Antwort nicht.
-// Wichtig: feste Layout-Höhen, damit sich beim Antworten NICHTS verschiebt.
+// Fragebildschirm: geheime Abstimmung mit Bestätigung.
+// Tippen wählt nur aus (kein Commit) -> erst "Antwort bestätigen" schreibt.
+// Truth = Serverwert -> kein Festhängen, keine versehentliche Antwort.
 import React, { useEffect, useState } from 'react'
 import { PLAYERS, QUESTIONS_PER_ROUND } from '../config.js'
 import VeraStage from './VeraStage.jsx'
@@ -10,11 +11,13 @@ const LETTERS = ['A', 'B', 'C', 'D']
 export default function QuestionScreen({ room, user, onAnswer }) {
   const q = room.currentQuestion
 
-  // Lokale Antwort-Sperre: einmal getippt bleibt es gewählt/gesperrt, auch wenn
-  // ein Polling-Zyklus den Serverwert kurz noch nicht enthält (kein Flackern).
   const [pick, setPick] = useState(null)
+  const [sending, setSending] = useState(false)
+  const [sendError, setSendError] = useState(false)
   useEffect(() => {
     setPick(null)
+    setSending(false)
+    setSendError(false)
   }, [room.questionNumber])
 
   if (!q) {
@@ -29,27 +32,65 @@ export default function QuestionScreen({ room, user, onAnswer }) {
   }
 
   const serverAnswer = user.id === 'marc' ? room.answerMarc : room.answerMelli
-  const hasServer = serverAnswer !== null && serverAnswer !== undefined
-  const myAnswer = hasServer ? serverAnswer : pick
   const partnerAnswer = user.id === 'marc' ? room.answerMelli : room.answerMarc
   const partner = user.id === 'marc' ? PLAYERS.melli : PLAYERS.marc
-  const hasAnswered = myAnswer !== null && myAnswer !== undefined
-  const partnerAnswered = partnerAnswer !== null && partnerAnswer !== undefined
+
+  const committed = serverAnswer !== null && serverAnswer !== undefined
+  const partnerCommitted = partnerAnswer !== null && partnerAnswer !== undefined
+  const shown = committed ? serverAnswer : pick
 
   const color = q.categoryColor || '#2563eb'
 
   const handlePick = (i) => {
-    if (hasAnswered) return
+    if (committed || sending) return
+    setSendError(false)
     setPick(i)
-    onAnswer(i)
+  }
+
+  const handleConfirm = async () => {
+    if (committed || sending || pick === null) return
+    setSending(true)
+    setSendError(false)
+    try {
+      await onAnswer(pick)
+      // committed wird true, sobald der nächste Poll den Serverwert bringt.
+    } catch {
+      setSending(false)
+      setSendError(true)
+    }
+  }
+
+  // Status-Text (feste Höhe -> kein Layout-Sprung)
+  let statusEl
+  if (committed && partnerCommitted) {
+    statusEl = <span>Beide bereit – wird aufgedeckt… ✨</span>
+  } else if (committed) {
+    statusEl = (
+      <>
+        <span className="dots">
+          <span />
+          <span />
+          <span />
+        </span>
+        <span>{partner.name} tippt noch…</span>
+      </>
+    )
+  } else if (partnerCommitted) {
+    statusEl = (
+      <span style={{ color: partner.color, fontWeight: 700 }}>
+        {partner.emoji} {partner.name} ist fertig – jetzt du!
+      </span>
+    )
+  } else {
+    statusEl = <span className="muted" style={{ margin: 0 }}>Wählt unabhängig – dann bestätigen.</span>
   }
 
   return (
     <div className="screen">
       <VeraStage
-        expression={hasAnswered && partnerAnswered ? 'think' : 'smug'}
+        expression={committed && partnerCommitted ? 'think' : 'smug'}
         line={pickQuestionTaunt(room.questionNumber)}
-        size={104}
+        size={120}
         compact
       />
 
@@ -68,46 +109,37 @@ export default function QuestionScreen({ room, user, onAnswer }) {
 
       <div className="options">
         {q.options.map((opt, i) => {
-          const selected = myAnswer === i
+          const selected = shown === i
           return (
             <button
               key={i}
               className={`option ${selected ? 'selected' : ''}`}
               style={selected ? { '--accent': color } : undefined}
-              disabled={hasAnswered}
+              disabled={committed || sending}
               onClick={() => handlePick(i)}
             >
               <span className="letter">{LETTERS[i]}</span>
               <span className="opt-text">{opt}</span>
-              {selected && <span className="marker">✓</span>}
+              {selected && <span className="marker">{committed ? '✓' : '•'}</span>}
             </button>
           )
         })}
       </div>
 
-      {/* Feste Höhe -> kein Layout-Sprung, wenn jemand antwortet */}
-      <div className="q-status">
-        {hasAnswered ? (
-          partnerAnswered ? (
-            <span>Beide bereit – wird aufgedeckt… ✨</span>
-          ) : (
-            <>
-              <span className="dots">
-                <span />
-                <span />
-                <span />
-              </span>
-              <span>{partner.name} tippt noch…</span>
-            </>
-          )
-        ) : partnerAnswered ? (
-          <span style={{ color: partner.color, fontWeight: 700 }}>
-            {partner.emoji} {partner.name} ist fertig – jetzt du!
-          </span>
+      <div className="q-status">{statusEl}</div>
+
+      <div className="q-action">
+        {committed ? (
+          <div className="answer-locked">✓ Deine Antwort steht fest.</div>
         ) : (
-          <span className="muted" style={{ margin: 0 }}>
-            Tippe deine Antwort – ihr entscheidet unabhängig.
-          </span>
+          <button
+            className="btn btn-primary"
+            style={{ '--accent': color }}
+            disabled={pick === null || sending}
+            onClick={handleConfirm}
+          >
+            {sending ? 'Wird gesendet…' : sendError ? 'Erneut bestätigen' : 'Antwort bestätigen'}
+          </button>
         )}
       </div>
     </div>

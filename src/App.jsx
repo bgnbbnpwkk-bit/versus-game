@@ -256,17 +256,12 @@ export default function App() {
   }, [room, roomCode])
 
   // --- Antwort abgeben (beide Spieler) ---
+  // Bewusst KEIN optimistisches Update: der Serverwert ist die einzige Wahrheit.
+  // Fehler werden geworfen, damit der QuestionScreen erneut bestätigen lassen kann.
   const handleAnswer = useCallback(
     async (index) => {
-      if (!user || !roomCode) return
-      const field = user.id === 'marc' ? 'answerMarc' : 'answerMelli'
-      // Optimistisches Update für sofortiges Feedback
-      setRoom((prev) => (prev ? { ...prev, [field]: index } : prev))
-      try {
-        await submitAnswer(roomCode, user.id, index)
-      } catch (err) {
-        console.warn('submitAnswer-Fehler:', err)
-      }
+      if (!user || !roomCode) throw new Error('Nicht bereit')
+      await submitAnswer(roomCode, user.id, index)
     },
     [user, roomCode]
   )

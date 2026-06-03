@@ -14,12 +14,12 @@ export default function InfoModal({ onClose, onLogout, user }) {
     setTimeout(() => setSaved(false), 1500)
   }
 
-  // Erzwingt frischen Stand: Service Worker updaten, alle Caches löschen, neu laden.
+  // Erzwingt frischen Stand: SW abmelden, alle Caches löschen, frische Navigation.
   const handleForceUpdate = async () => {
     try {
       if ('serviceWorker' in navigator) {
-        const reg = await navigator.serviceWorker.getRegistration()
-        if (reg) await reg.update()
+        const regs = await navigator.serviceWorker.getRegistrations()
+        await Promise.all(regs.map((r) => r.unregister()))
       }
       if (window.caches) {
         const keys = await caches.keys()
@@ -27,9 +27,10 @@ export default function InfoModal({ onClose, onLogout, user }) {
       }
     } catch {
       /* ignore */
-    } finally {
-      window.location.reload()
     }
+    // Cache-Buster erzwingt eine echte Netzwerk-Navigation (umgeht iOS-Snapshot).
+    const base = window.location.href.split('?')[0]
+    window.location.replace(base + '?u=' + Date.now())
   }
 
   return (
@@ -57,7 +58,7 @@ export default function InfoModal({ onClose, onLogout, user }) {
 
         <h3>App</h3>
         <p className="subtitle" style={{ marginBottom: 10 }}>
-          Version <strong>1.0.5</strong>. Falls eine neue Version nicht
+          Version <strong>1.0.6</strong>. Falls eine neue Version nicht
           automatisch erscheint, hier frisch laden:
         </p>
         <button className="btn btn-ghost" onClick={handleForceUpdate}>
@@ -66,6 +67,11 @@ export default function InfoModal({ onClose, onLogout, user }) {
 
         <h3>Changelog</h3>
         <ul>
+          <li className="changelog-item">v1.0.6 – Süße VERA &amp; Bugfixes</li>
+          <li>VERA neu: süßes Anime-Mädchen im Hasen-Hoodie, voll sichtbar</li>
+          <li>Antwort erst nach „Antwort bestätigen" (kein Fehltipp mehr)</li>
+          <li>Antwort-Hänger behoben (Server ist alleinige Wahrheit)</li>
+          <li>„App aktualisieren" erzwingt jetzt frischen Stand</li>
           <li className="changelog-item">v1.0.5 – Spiel-Feinschliff</li>
           <li>Installierbare App-Icons (Android/iOS)</li>
           <li>Faire Kategorie-Verteilung (keine Häufung)</li>
