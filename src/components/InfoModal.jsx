@@ -31,6 +31,9 @@ export default function InfoModal({ onClose }) {
 
         <h3>Changelog</h3>
         <ul>
+          <li className="changelog-item">v1.2.1 – Animationen sichtbar</li>
+          <li>Konfetti überlagert jetzt den ganzen Bildschirm (Portal)</li>
+          <li>Richtige Antwort pulst dauerhaft – sichtbar beim Hinscrollen</li>
           <li className="changelog-item">v1.2.0 – Sound &amp; Animationen</li>
           <li>Soundeffekte (Tippen, Auflösen, Sieg/Niederlage) – im ⚙️ stummschaltbar</li>
           <li>Konfetti bei perfekter Harmonie &amp; Team-Sieg</li>

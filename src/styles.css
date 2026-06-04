@@ -438,19 +438,20 @@ body {
 .option.correct {
   border-color: var(--good);
   background: color-mix(in srgb, var(--good) 10%, #fff);
-  animation: correctPulse 0.6s ease;
+  animation: correctPulse 1.3s ease-in-out infinite;
 }
 .option.wrong {
   border-color: var(--bad);
   background: color-mix(in srgb, var(--bad) 10%, #fff);
-  animation: wrongShake 0.4s ease;
+  animation: wrongShake 0.45s ease 2;
 }
 @keyframes correctPulse {
-  0% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--good) 55%, transparent);
-  }
+  0%,
   100% {
-    box-shadow: 0 0 0 14px transparent;
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--good) 45%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 10px transparent;
   }
 }
 @keyframes wrongShake {
