@@ -54,16 +54,20 @@ function hasValidKey() {
   return hasGeminiKey()
 }
 
-async function callGemini(prompt, { temperature = 0.9, maxOutputTokens = 500 } = {}) {
+async function callGemini(prompt, { temperature = 0.9, maxOutputTokens = 800 } = {}) {
   const key = getGeminiKey()
   const model = getGeminiModel()
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`
+  const generationConfig = { temperature, maxOutputTokens }
+  // 2.5er-Modelle "denken" standardmäßig und verbrauchen damit das Token-Budget,
+  // sodass häufig eine leere Antwort zurückkommt. Thinking abschalten.
+  if (model.includes('2.5')) generationConfig.thinkingConfig = { thinkingBudget: 0 }
   const response = await fetch(`${endpoint}?key=${key}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature, maxOutputTokens },
+      generationConfig,
     }),
   })
   if (!response.ok) {
@@ -85,15 +89,16 @@ async function callGemini(prompt, { temperature = 0.9, maxOutputTokens = 500 } =
   return text
 }
 
-// Diagnose: testet den Gemini-Zugriff und liefert eine lesbare Meldung.
+// Diagnose: erzeugt eine ECHTE Testfrage (kein Fallback) und meldet das Ergebnis.
 export async function testGemini() {
   if (!hasGeminiKey()) return { ok: false, message: 'Kein API-Key gesetzt.' }
   try {
-    const text = await callGemini('Antworte nur mit dem Wort OK.', {
-      temperature: 0,
-      maxOutputTokens: 20,
+    const q = await generateQuestionRaw({
+      id: 'allgemeinwissen',
+      name: 'Allgemeinwissen',
+      color: '#6B7280',
     })
-    return { ok: true, message: `OK – Modell „${getGeminiModel()}" antwortet.` }
+    return { ok: true, message: `Echte Frage erhalten: „${q.text.slice(0, 55)}…"` }
   } catch (e) {
     return { ok: false, message: String(e?.message || e) }
   }
@@ -148,43 +153,54 @@ Keine weiteren Erklärungen. Nur das JSON.`
   return p
 }
 
-export async function generateQuestion(category, avoidList = []) {
+// Echte KI-Generierung – wirft bei Fehler (KEIN Fallback). Für Diagnose & intern.
+async function generateQuestionRaw(category, avoidList = []) {
   const avoidSet = new Set(avoidList.map(normalizeQuestion))
-  if (hasValidKey()) {
-    // Bis zu 3 Versuche, eine nicht-doppelte Frage zu bekommen.
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        const angle = pickAngle(category.id)
-        const text = await callGemini(QUESTION_SYSTEM_PROMPT(category.name, avoidList, angle), {
-          temperature: 1.0,
-          maxOutputTokens: 500,
-        })
-        const parsed = extractJson(text)
-        if (
-          parsed &&
-          typeof parsed.question === 'string' &&
-          Array.isArray(parsed.options) &&
-          parsed.options.length === 4 &&
-          Number.isInteger(parsed.correctIndex)
-        ) {
-          const norm = normalizeQuestion(parsed.question)
-          if (avoidSet.has(norm) && attempt < 2) continue // Dublette -> neu versuchen
-          return {
-            text: parsed.question,
-            options: parsed.options.map(String),
-            correctIndex: Math.max(0, Math.min(3, parsed.correctIndex)),
-            category: category.name,
-            categoryColor: category.color,
-          }
-        }
-      } catch (err) {
-        console.warn('generateQuestion: Gemini fehlgeschlagen, nutze Fallback.', err)
-        break
+  let lastErr = null
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const angle = pickAngle(category.id)
+    const text = await callGemini(QUESTION_SYSTEM_PROMPT(category.name, avoidList, angle), {
+      temperature: 1.0,
+      maxOutputTokens: 800,
+    })
+    let parsed
+    try {
+      parsed = extractJson(text)
+    } catch {
+      lastErr = new Error('Antwort war kein gültiges JSON')
+      continue
+    }
+    if (
+      parsed &&
+      typeof parsed.question === 'string' &&
+      Array.isArray(parsed.options) &&
+      parsed.options.length === 4 &&
+      Number.isInteger(parsed.correctIndex)
+    ) {
+      const norm = normalizeQuestion(parsed.question)
+      if (avoidSet.has(norm) && attempt < 2) continue // Dublette -> neu versuchen
+      return {
+        text: parsed.question,
+        options: parsed.options.map(String),
+        correctIndex: Math.max(0, Math.min(3, parsed.correctIndex)),
+        category: category.name,
+        categoryColor: category.color,
       }
     }
+    lastErr = new Error('Unerwartetes Antwortformat')
   }
-  // Fallback (z. B. wenn kein API-Key gesetzt ist oder die API zickt)
-  return fallbackQuestion(category, avoidSet)
+  throw lastErr || new Error('Keine gültige Frage erhalten')
+}
+
+export async function generateQuestion(category, avoidList = []) {
+  if (hasValidKey()) {
+    try {
+      return await generateQuestionRaw(category, avoidList)
+    } catch (err) {
+      console.warn('generateQuestion: Gemini fehlgeschlagen, nutze Fallback.', err)
+    }
+  }
+  return fallbackQuestion(category, new Set(avoidList.map(normalizeQuestion)))
 }
 
 function fallbackQuestion(category, avoidSet = new Set()) {
