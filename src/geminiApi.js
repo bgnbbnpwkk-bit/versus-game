@@ -6,9 +6,8 @@ import { GEMINI_MODEL } from './config.js'
 import { categoryHint } from './data/categories.js'
 import { FALLBACK_QUESTIONS, FALLBACK_COMMENTS } from './data/fallback.js'
 
-const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`
-
 const GEMINI_KEY_STORAGE = 'versus_gemini_key'
+const GEMINI_MODEL_STORAGE = 'versus_gemini_model'
 
 // --- Key-Verwaltung (über i-Panel eingebbar, in localStorage gespeichert) ---
 export function getGeminiKey() {
@@ -32,13 +31,34 @@ export function hasGeminiKey() {
   return !!getGeminiKey()
 }
 
+// --- Modell-Verwaltung (überschreibbar, falls Google ein Modell abschaltet) ---
+export function getGeminiModel() {
+  try {
+    return localStorage.getItem(GEMINI_MODEL_STORAGE) || GEMINI_MODEL
+  } catch {
+    return GEMINI_MODEL
+  }
+}
+
+export function setGeminiModel(model) {
+  try {
+    const m = (model || '').trim()
+    if (m && m !== GEMINI_MODEL) localStorage.setItem(GEMINI_MODEL_STORAGE, m)
+    else localStorage.removeItem(GEMINI_MODEL_STORAGE)
+  } catch {
+    /* ignore */
+  }
+}
+
 function hasValidKey() {
   return hasGeminiKey()
 }
 
 async function callGemini(prompt, { temperature = 0.9, maxOutputTokens = 500 } = {}) {
   const key = getGeminiKey()
-  const response = await fetch(`${ENDPOINT}?key=${key}`, {
+  const model = getGeminiModel()
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`
+  const response = await fetch(`${endpoint}?key=${key}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

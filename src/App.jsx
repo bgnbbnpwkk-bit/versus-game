@@ -24,24 +24,33 @@ import ResultScreen from './components/ResultScreen.jsx'
 import InfoModal from './components/InfoModal.jsx'
 
 const HIGHSCORE_KEY = 'versus_highscore'
-const RECENT_Q_KEY = 'versus_recent_questions'
-const RECENT_Q_MAX = 45
+const RECENT_BY_CAT_KEY = 'versus_recent_by_cat'
+const RECENT_PER_CAT = 20 // pro Kategorie: keine Wiederholung, bis 20 andere kamen
 const SOLO_KEY = 'versus_solo'
 
-// Zuletzt gestellte Fragen (normalisiert) – rundenübergreifend, pro Gerät.
-function loadRecentQuestions() {
+// Zuletzt gestellte Fragen (normalisiert) je Kategorie – rundenübergreifend.
+function loadRecentByCat() {
   try {
-    return JSON.parse(localStorage.getItem(RECENT_Q_KEY) || '[]')
+    return JSON.parse(localStorage.getItem(RECENT_BY_CAT_KEY) || '{}') || {}
   } catch {
-    return []
+    return {}
   }
 }
-function saveRecentQuestions(list) {
+function saveRecentByCat(map) {
   try {
-    localStorage.setItem(RECENT_Q_KEY, JSON.stringify(list.slice(-RECENT_Q_MAX)))
+    localStorage.setItem(RECENT_BY_CAT_KEY, JSON.stringify(map))
   } catch {
     /* ignore */
   }
+}
+// Fügt eine Frage zur Kategorie-Historie hinzu (max. RECENT_PER_CAT) und speichert.
+function rememberQuestion(catId, norm) {
+  const map = loadRecentByCat()
+  const list = (map[catId] || []).filter((x) => x !== norm)
+  list.push(norm)
+  map[catId] = list.slice(-RECENT_PER_CAT)
+  saveRecentByCat(map)
+  return map[catId]
 }
 
 // --- Punkte-Logik ---
@@ -208,12 +217,12 @@ export default function App() {
   const startRound = useCallback(async () => {
     setBusy(true)
     try {
-      const recent = loadRecentQuestions()
       const plan = buildCategoryPlan(QUESTIONS_PER_ROUND)
       const cat = getCategoryById(plan[0])
-      const q = await generateQuestion(cat, recent)
+      const recentCat = loadRecentByCat()[cat.id] || []
+      const q = await generateQuestion(cat, recentCat)
       const norm = normalizeQuestion(q.text)
-      saveRecentQuestions([...recent, norm])
+      rememberQuestion(cat.id, norm)
       await updateRoom(roomCode, {
         state: 'question',
         questionNumber: 1,
@@ -249,11 +258,13 @@ export default function App() {
             : buildCategoryPlan(QUESTIONS_PER_ROUND)
         const nextNum = room.questionNumber + 1
         const cat = getCategoryById(plan[nextNum - 1])
-        const recent = loadRecentQuestions()
         const used = room.usedQuestions || []
-        const q = await generateQuestion(cat, [...used, ...recent])
+        const recentCat = loadRecentByCat()[cat.id] || []
+        // Vermeide: alles aus dieser Kategorie (Fenster 20) + alles aus der laufenden Runde.
+        const avoid = Array.from(new Set([...recentCat, ...used]))
+        const q = await generateQuestion(cat, avoid)
         const norm = normalizeQuestion(q.text)
-        saveRecentQuestions([...recent, norm])
+        rememberQuestion(cat.id, norm)
         await updateRoom(roomCode, {
           state: 'question',
           questionNumber: nextNum,
@@ -411,10 +422,19 @@ export default function App() {
     }
     switch (room.state) {
       case 'question':
-        return <QuestionScreen room={room} user={user} onAnswer={handleAnswer} />
+        // key pro Frage -> Screen startet oben (VERA sichtbar), lokaler State frisch
+        return (
+          <QuestionScreen
+            key={`q${room.questionNumber}`}
+            room={room}
+            user={user}
+            onAnswer={handleAnswer}
+          />
+        )
       case 'reveal':
         return (
           <RevealScreen
+            key={`r${room.questionNumber}`}
             room={room}
             user={user}
             isHost={isHost}
@@ -454,7 +474,7 @@ export default function App() {
       <div className="topbar">
         <div>
           <div className="brand">VERSUS</div>
-          <div className="team-tag">Team Melli &amp; Marc</div>
+          <div className="team-tag">Melli &amp; Marc vs. VERA 😈</div>
         </div>
         <button
           className="icon-btn"

@@ -14,7 +14,9 @@ export const FIREBASE = {
 // --- Gemini API (Fragen + VERA-Kommentare) ---
 // Der API-Key wird NICHT hier hinterlegt, sondern zur Laufzeit über das
 // i-Panel eingegeben und in localStorage gespeichert (siehe src/geminiApi.js).
-export const GEMINI_MODEL = 'gemini-2.5-flash-preview-05-20'
+// Standard-Modell (überschreibbar im i-Panel). "preview"-Modelle werden von
+// Google nach einiger Zeit abgeschaltet -> daher ein GA-Modell als Default.
+export const GEMINI_MODEL = 'gemini-2.5-flash'
 
 // --- Google Auth läuft über das Firebase Auth SDK (siehe src/firebaseAuth.js).
 // Keine separate Google Client-ID nötig – Firebase verwaltet OAuth intern.

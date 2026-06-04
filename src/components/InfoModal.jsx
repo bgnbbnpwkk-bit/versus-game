@@ -1,12 +1,21 @@
 // i-Button-Modal: Features, Changelog (eingebettet) + Tech Stack am Ende.
 // Enthält auch das Eingabefeld für den Gemini-API-Key (localStorage).
 import React, { useState } from 'react'
-import { getGeminiKey, setGeminiKey } from '../geminiApi.js'
+import { getGeminiKey, setGeminiKey, getGeminiModel, setGeminiModel } from '../geminiApi.js'
 
 export default function InfoModal({ onClose, onLogout, user, soloTest, onToggleSolo }) {
   const [keyInput, setKeyInput] = useState(getGeminiKey())
   const [saved, setSaved] = useState(false)
   const hasKey = !!getGeminiKey()
+
+  const [modelInput, setModelInput] = useState(getGeminiModel())
+  const [modelSaved, setModelSaved] = useState(false)
+
+  const handleSaveModel = () => {
+    setGeminiModel(modelInput)
+    setModelSaved(true)
+    setTimeout(() => setModelSaved(false), 1500)
+  }
 
   const handleSaveKey = () => {
     setGeminiKey(keyInput)
@@ -40,7 +49,7 @@ export default function InfoModal({ onClose, onLogout, user, soloTest, onToggleS
           ×
         </button>
 
-        <h2>VERSUS 🎮</h2>
+        <h2>Melli &amp; Marc vs. VERA 😈</h2>
         <p className="subtitle">Das Pärchen-Quiz gegen die KI.</p>
 
         <h3>Features</h3>
@@ -58,7 +67,7 @@ export default function InfoModal({ onClose, onLogout, user, soloTest, onToggleS
 
         <h3>App</h3>
         <p className="subtitle" style={{ marginBottom: 10 }}>
-          Version <strong>1.0.10</strong>. Falls eine neue Version nicht
+          Version <strong>1.0.11</strong>. Falls eine neue Version nicht
           automatisch erscheint, hier frisch laden:
         </p>
         <button className="btn btn-ghost" onClick={handleForceUpdate}>
@@ -86,6 +95,12 @@ export default function InfoModal({ onClose, onLogout, user, soloTest, onToggleS
 
         <h3>Changelog</h3>
         <ul>
+          <li className="changelog-item">v1.0.11 – „vs. VERA"</li>
+          <li>Neues App-Icon mit VERAs Gesicht (für beide gleich)</li>
+          <li>App heißt jetzt „Melli &amp; Marc vs. VERA"</li>
+          <li>Aktuelles KI-Modell (gemini-2.5-flash) + im i-Panel änderbar</li>
+          <li>Keine Fragen-Wiederholung pro Kategorie (Fenster 20)</li>
+          <li>Mehr eingebaute Reserve-Fragen; VERA im Spiel wieder sichtbar</li>
           <li className="changelog-item">v1.0.10 – Solo-Test-Modus</li>
           <li>Allein testen: App simuliert den Partner automatisch</li>
           <li className="changelog-item">v1.0.9 – Kein Versions-Rücksprung mehr</li>
@@ -161,6 +176,23 @@ export default function InfoModal({ onClose, onLogout, user, soloTest, onToggleS
         </div>
         <div className={`key-status ${hasKey ? 'ok' : 'missing'}`}>
           {hasKey ? '✓ Key gespeichert – VERA generiert eigene Fragen.' : 'Kein Key – Fallback-Fragen aktiv.'}
+        </div>
+
+        <p className="subtitle" style={{ margin: '12px 0 8px' }}>
+          KI-Modell (nur ändern, falls Google ein Modell abschaltet):
+        </p>
+        <div className="key-row">
+          <input
+            className="field"
+            style={{ textAlign: 'left', flex: 1 }}
+            type="text"
+            placeholder="gemini-2.5-flash"
+            value={modelInput}
+            onChange={(e) => setModelInput(e.target.value)}
+          />
+          <button className="btn btn-ghost" style={{ width: 'auto', padding: '0 18px' }} onClick={handleSaveModel}>
+            {modelSaved ? '✓' : 'Setzen'}
+          </button>
         </div>
 
         {user && (

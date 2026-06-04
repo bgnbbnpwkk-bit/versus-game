@@ -1,7 +1,7 @@
 {
-  "name": "VERSUS – Team Melli & Marc",
-  "short_name": "VERSUS",
-  "description": "Das Pärchen-Quiz gegen die KI",
+  "name": "Melli & Marc vs. VERA",
+  "short_name": "vs. VERA",
+  "description": "Das Pärchen-Quiz gegen die KI VERA",
   "id": "/versus-game/",
   "start_url": "/versus-game/",
   "scope": "/versus-game/",
