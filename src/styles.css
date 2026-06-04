@@ -125,6 +125,12 @@ body {
 }
 
 /* i-Button ----------------------------------------------------------- */
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
 .icon-btn {
   width: 40px;
   height: 40px;

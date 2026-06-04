@@ -22,6 +22,7 @@ import QuestionScreen from './components/QuestionScreen.jsx'
 import RevealScreen from './components/RevealScreen.jsx'
 import ResultScreen from './components/ResultScreen.jsx'
 import InfoModal from './components/InfoModal.jsx'
+import SettingsModal from './components/SettingsModal.jsx'
 
 const HIGHSCORE_KEY = 'versus_highscore'
 const RECENT_BY_CAT_KEY = 'versus_recent_by_cat'
@@ -74,6 +75,7 @@ export default function App() {
   const [busy, setBusy] = useState(false)
   const [lobbyError, setLobbyError] = useState('')
   const [showInfo, setShowInfo] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
   const [highscore, setHighscore] = useState(null)
   const [soloTest, setSoloTest] = useState(false)
 
@@ -151,6 +153,7 @@ export default function App() {
     setRoom(null)
     setIsHost(false)
     setShowInfo(false)
+    setShowSettings(false)
   }, [])
 
   // --- Polling des Spielzustands ---
@@ -478,21 +481,33 @@ export default function App() {
           <div className="brand">vs. VERA 😈</div>
           <div className="team-tag">Melli &amp; Marc 💙🩷</div>
         </div>
-        <button
-          className="icon-btn"
-          onClick={() => setShowInfo(true)}
-          aria-label="Info"
-          title="Info"
-        >
-          i
-        </button>
+        <div className="topbar-actions">
+          <button
+            className="icon-btn"
+            onClick={() => setShowInfo(true)}
+            aria-label="Info"
+            title="Info"
+          >
+            i
+          </button>
+          <button
+            className="icon-btn"
+            onClick={() => setShowSettings(true)}
+            aria-label="Einstellungen"
+            title="Einstellungen"
+          >
+            ⚙️
+          </button>
+        </div>
       </div>
 
       {renderContent()}
 
-      {showInfo && (
-        <InfoModal
-          onClose={() => setShowInfo(false)}
+      {showInfo && <InfoModal onClose={() => setShowInfo(false)} />}
+
+      {showSettings && (
+        <SettingsModal
+          onClose={() => setShowSettings(false)}
           onLogout={handleLogout}
           user={user}
           soloTest={soloTest}
