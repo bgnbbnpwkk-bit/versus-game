@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react'
 import { PLAYERS, QUESTIONS_PER_ROUND } from '../config.js'
 import VeraStage from './VeraStage.jsx'
 import { pickQuestionTaunt } from './Vera.jsx'
+import { playTap, playConfirm } from '../sound.js'
 
 const LETTERS = ['A', 'B', 'C', 'D']
 
@@ -45,12 +46,14 @@ export default function QuestionScreen({ room, user, onAnswer }) {
     if (committed || sending) return
     setSendError(false)
     setPick(i)
+    playTap()
   }
 
   const handleConfirm = async () => {
     if (committed || sending || pick === null) return
     setSending(true)
     setSendError(false)
+    playConfirm()
     try {
       await onAnswer(pick)
       // committed wird true, sobald der nächste Poll den Serverwert bringt.

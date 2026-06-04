@@ -31,6 +31,10 @@ export default function InfoModal({ onClose }) {
 
         <h3>Changelog</h3>
         <ul>
+          <li className="changelog-item">v1.2.0 – Sound &amp; Animationen</li>
+          <li>Soundeffekte (Tippen, Auflösen, Sieg/Niederlage) – im ⚙️ stummschaltbar</li>
+          <li>Konfetti bei perfekter Harmonie &amp; Team-Sieg</li>
+          <li>Richtige Antwort pulst, falsche wackelt</li>
           <li className="changelog-item">v1.1.0 – Aufgeräumt</li>
           <li>Saubere Versionierung (SemVer) ab dieser Version</li>
           <li>Einstellungen ins neue Zahnrad ⚙️ ausgelagert (i bleibt rein informativ)</li>

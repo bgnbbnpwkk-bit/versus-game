@@ -9,6 +9,7 @@ import {
   testGemini,
 } from '../geminiApi.js'
 import { APP_VERSION } from '../version.js'
+import { isMuted, setMuted } from '../sound.js'
 
 export default function SettingsModal({ onClose, onLogout, user, soloTest, onToggleSolo }) {
   const [keyInput, setKeyInput] = useState(getGeminiKey())
@@ -20,6 +21,13 @@ export default function SettingsModal({ onClose, onLogout, user, soloTest, onTog
 
   const [testing, setTesting] = useState(false)
   const [testMsg, setTestMsg] = useState(null)
+
+  const [muted, setMutedState] = useState(isMuted())
+  const toggleMuted = () => {
+    const nv = !muted
+    setMuted(nv)
+    setMutedState(nv)
+  }
 
   const handleSaveKey = () => {
     setGeminiKey(keyInput)
@@ -133,6 +141,14 @@ export default function SettingsModal({ onClose, onLogout, user, soloTest, onTog
             „Spiel starten". Für echtes Spiel zu zweit bitte wieder ausschalten.
           </p>
         )}
+
+        <h3>Ton</h3>
+        <p className="subtitle" style={{ marginBottom: 10 }}>
+          Soundeffekte beim Antworten, Auflösen und am Ende.
+        </p>
+        <button className={muted ? 'btn btn-ghost' : 'btn btn-primary'} onClick={toggleMuted}>
+          {muted ? '🔇 Ton ist AUS (zum Einschalten tippen)' : '🔊 Ton ist AN (zum Stummschalten tippen)'}
+        </button>
 
         <h3>App</h3>
         <p className="subtitle" style={{ marginBottom: 10 }}>

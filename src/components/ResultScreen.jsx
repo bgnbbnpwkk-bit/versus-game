@@ -1,13 +1,20 @@
 // Endauswertung: Team vs. VERA, Gewinner-Animation, History, Nochmal spielen.
-import React from 'react'
+import React, { useEffect } from 'react'
 import VeraStage from './VeraStage.jsx'
 import { veraResultExpression, veraResultLine } from './Vera.jsx'
+import Confetti from './Confetti.jsx'
+import { playFinish } from '../sound.js'
 
 export default function ResultScreen({ room, isHost, onPlayAgain, onLeave, highscore, busy }) {
   const s = room.scores || { team: 0, ki: 0 }
   const history = room.roundHistory || []
   const teamWon = s.team > s.ki
   const draw = s.team === s.ki
+
+  useEffect(() => {
+    playFinish(teamWon)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const emoji = draw ? '🤝' : teamWon ? '🏆' : '😈'
   const headline = draw
@@ -18,6 +25,7 @@ export default function ResultScreen({ room, isHost, onPlayAgain, onLeave, highs
 
   return (
     <div className="screen">
+      {teamWon && <Confetti count={40} />}
       <VeraStage
         expression={veraResultExpression(s.team, s.ki)}
         line={veraResultLine(s.team, s.ki)}

@@ -1,24 +1,43 @@
 // Auflösung: VERAs Reaktion + Punkte zuerst (oben), dann die Detail-Aufschlüsselung.
-import React from 'react'
+import React, { useEffect } from 'react'
 import { PLAYERS, QUESTIONS_PER_ROUND } from '../config.js'
 import VeraStage from './VeraStage.jsx'
 import { veraExpressionForPoints } from './Vera.jsx'
+import Confetti from './Confetti.jsx'
+import { playReveal } from '../sound.js'
+
+function outcomeFromPoints(pts) {
+  if (!pts) return 'one'
+  if (pts.ki > 0) return 'fail'
+  if (pts.team >= 2) return 'harmony'
+  if (pts.team >= 1) return 'split'
+  return 'one'
+}
 
 const LETTERS = ['A', 'B', 'C', 'D']
 
 export default function RevealScreen({ room, user, isHost, onNext, busy }) {
   const q = room.currentQuestion
+  const pts = room.lastPoints || { team: 0, ki: 0 }
+  const outcome = outcomeFromPoints(pts)
+
+  // Sound einmal beim Aufdecken (pro Frage frisch gemountet).
+  useEffect(() => {
+    playReveal(outcome)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   if (!q) return null
 
   const marc = room.answerMarc
   const melli = room.answerMelli
   const correct = q.correctIndex
-  const pts = room.lastPoints || { team: 0, ki: 0 }
   const color = q.categoryColor || '#2563eb'
   const isLast = room.questionNumber >= QUESTIONS_PER_ROUND
 
   return (
     <div className="screen">
+      {outcome === 'harmony' && <Confetti />}
       <div className="q-header">
         <span className="cat-badge" style={{ background: color }}>
           {q.category}
