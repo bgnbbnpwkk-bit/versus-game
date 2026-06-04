@@ -66,11 +66,37 @@ async function callGemini(prompt, { temperature = 0.9, maxOutputTokens = 500 } =
       generationConfig: { temperature, maxOutputTokens },
     }),
   })
-  if (!response.ok) throw new Error(`Gemini API Fehler (${response.status})`)
+  if (!response.ok) {
+    let detail = ''
+    try {
+      const j = await response.json()
+      detail = j?.error?.message || j?.error?.status || ''
+    } catch {
+      /* ignore */
+    }
+    throw new Error(`HTTP ${response.status}${detail ? ' – ' + detail : ''}`)
+  }
   const data = await response.json()
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text
-  if (!text) throw new Error('Gemini lieferte keine Antwort.')
+  if (!text) {
+    const reason = data?.promptFeedback?.blockReason || data?.candidates?.[0]?.finishReason || 'leere Antwort'
+    throw new Error(`Keine Antwort (${reason})`)
+  }
   return text
+}
+
+// Diagnose: testet den Gemini-Zugriff und liefert eine lesbare Meldung.
+export async function testGemini() {
+  if (!hasGeminiKey()) return { ok: false, message: 'Kein API-Key gesetzt.' }
+  try {
+    const text = await callGemini('Antworte nur mit dem Wort OK.', {
+      temperature: 0,
+      maxOutputTokens: 20,
+    })
+    return { ok: true, message: `OK – Modell „${getGeminiModel()}" antwortet.` }
+  } catch (e) {
+    return { ok: false, message: String(e?.message || e) }
+  }
 }
 
 function extractJson(text) {

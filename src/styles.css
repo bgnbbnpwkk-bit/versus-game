@@ -515,6 +515,16 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  flex-shrink: 0;
+}
+/* Frage-Screen: feste Elemente dürfen nicht zusammengequetscht werden */
+.scoreboard,
+.q-header,
+.q-text,
+.options,
+.q-status,
+.q-action {
+  flex-shrink: 0;
 }
 .vera-stage.compact {
   padding-top: 8px;

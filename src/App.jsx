@@ -473,8 +473,8 @@ export default function App() {
     <div className="app">
       <div className="topbar">
         <div>
-          <div className="brand">VERSUS</div>
-          <div className="team-tag">Melli &amp; Marc vs. VERA 😈</div>
+          <div className="brand">vs. VERA 😈</div>
+          <div className="team-tag">Melli &amp; Marc 💙🩷</div>
         </div>
         <button
           className="icon-btn"

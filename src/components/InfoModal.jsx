@@ -1,7 +1,7 @@
 // i-Button-Modal: Features, Changelog (eingebettet) + Tech Stack am Ende.
 // Enthält auch das Eingabefeld für den Gemini-API-Key (localStorage).
 import React, { useState } from 'react'
-import { getGeminiKey, setGeminiKey, getGeminiModel, setGeminiModel } from '../geminiApi.js'
+import { getGeminiKey, setGeminiKey, getGeminiModel, setGeminiModel, testGemini } from '../geminiApi.js'
 
 export default function InfoModal({ onClose, onLogout, user, soloTest, onToggleSolo }) {
   const [keyInput, setKeyInput] = useState(getGeminiKey())
@@ -15,6 +15,16 @@ export default function InfoModal({ onClose, onLogout, user, soloTest, onToggleS
     setGeminiModel(modelInput)
     setModelSaved(true)
     setTimeout(() => setModelSaved(false), 1500)
+  }
+
+  const [testing, setTesting] = useState(false)
+  const [testMsg, setTestMsg] = useState(null)
+  const handleTest = async () => {
+    setTesting(true)
+    setTestMsg(null)
+    const r = await testGemini()
+    setTesting(false)
+    setTestMsg(r)
   }
 
   const handleSaveKey = () => {
@@ -67,7 +77,7 @@ export default function InfoModal({ onClose, onLogout, user, soloTest, onToggleS
 
         <h3>App</h3>
         <p className="subtitle" style={{ marginBottom: 10 }}>
-          Version <strong>1.0.11</strong>. Falls eine neue Version nicht
+          Version <strong>1.0.12</strong>. Falls eine neue Version nicht
           automatisch erscheint, hier frisch laden:
         </p>
         <button className="btn btn-ghost" onClick={handleForceUpdate}>
@@ -95,6 +105,10 @@ export default function InfoModal({ onClose, onLogout, user, soloTest, onToggleS
 
         <h3>Changelog</h3>
         <ul>
+          <li className="changelog-item">v1.0.12 – VERA sichtbar &amp; KI-Diagnose</li>
+          <li>VERA wird im Spiel nicht mehr zusammengequetscht</li>
+          <li>„KI testen"-Knopf zeigt die genaue Fehlermeldung</li>
+          <li>In-App-Name „vs. VERA"</li>
           <li className="changelog-item">v1.0.11 – „vs. VERA"</li>
           <li>Neues App-Icon mit VERAs Gesicht (für beide gleich)</li>
           <li>App heißt jetzt „Melli &amp; Marc vs. VERA"</li>
@@ -194,6 +208,16 @@ export default function InfoModal({ onClose, onLogout, user, soloTest, onToggleS
             {modelSaved ? '✓' : 'Setzen'}
           </button>
         </div>
+
+        <button className="btn btn-ghost" style={{ marginTop: 10 }} onClick={handleTest} disabled={testing}>
+          {testing ? 'Teste KI…' : '🧪 KI-Verbindung testen'}
+        </button>
+        {testMsg && (
+          <div className={`key-status ${testMsg.ok ? 'ok' : 'missing'}`} style={{ marginTop: 6 }}>
+            {testMsg.ok ? '✓ ' : '⚠️ '}
+            {testMsg.message}
+          </div>
+        )}
 
         {user && (
           <>
