@@ -313,6 +313,8 @@ export default function App() {
           category: getCategoryByName(q.category),
           marcAnswerText: q.options[marcIdx],
           melliAnswerText: q.options[melliIdx],
+          marcCorrect: marcIdx === q.correctIndex,
+          melliCorrect: melliIdx === q.correctIndex,
           correctAnswerText: q.options[q.correctIndex],
           teamPoints: result.teamPoints,
           outcome: result.outcome,

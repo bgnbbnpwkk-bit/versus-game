@@ -3,7 +3,6 @@
 // Model: gemini-2.5-flash-preview-05-20
 // =====================================================================
 import { GEMINI_MODEL } from './config.js'
-import { categoryHint } from './data/categories.js'
 import { FALLBACK_QUESTIONS, FALLBACK_COMMENTS } from './data/fallback.js'
 
 const GEMINI_KEY_STORAGE = 'versus_gemini_key'
@@ -218,31 +217,22 @@ function fallbackQuestion(category, avoidSet = new Set()) {
 }
 
 // --- VERA-Kommentar generieren ---
-function commentPrompt({ category, marcAnswer, melliAnswer, correctAnswer, points, hint }) {
-  return `Du bist VERA, eine freche, provokante und leicht herablassende Quiz-KI gegen das Team Melli & Marc.
-Schreibe einen sehr kurzen Kommentar (1-2 Sätze, max. 100 Zeichen) auf Deutsch.
-Kontext: Kategorie=${category}, Marc antwortete=${marcAnswer}, Melli antwortete=${melliAnswer},
-Richtige Antwort=${correctAnswer}, Punkte diese Runde=${points}.
-${hint}
-Sei frech aber unterhaltsam. Kein Markdown.`
-}
-
 export async function generateComment(ctx) {
-  // ctx: { category(obj), marcAnswerText, melliAnswerText, correctAnswerText, teamPoints, outcome }
-  const hint = categoryHint(ctx.category)
+  // ctx: { category(obj), marcAnswerText, melliAnswerText, marcCorrect, melliCorrect,
+  //        correctAnswerText, teamPoints, outcome }
+  const hint = buildCommentHint(ctx.category, ctx.marcCorrect, ctx.melliCorrect)
   if (hasValidKey()) {
     try {
-      const text = await callGemini(
-        commentPrompt({
-          category: ctx.category.name,
-          marcAnswer: ctx.marcAnswerText,
-          melliAnswer: ctx.melliAnswerText,
-          correctAnswer: ctx.correctAnswerText,
-          points: ctx.teamPoints,
-          hint,
-        }),
-        { temperature: 1.0, maxOutputTokens: 120 }
-      )
+      const prompt = `Du bist VERA, eine freche, provokante und leicht herablassende Quiz-KI gegen das Team Melli & Marc.
+Schreibe einen sehr kurzen Kommentar (1-2 Sätze, max. 120 Zeichen) auf Deutsch.
+Kategorie: ${ctx.category.name}
+Marc antwortete „${ctx.marcAnswerText}" — das war ${ctx.marcCorrect ? 'RICHTIG' : 'FALSCH'}.
+Melli antwortete „${ctx.melliAnswerText}" — das war ${ctx.melliCorrect ? 'RICHTIG' : 'FALSCH'}.
+Die richtige Antwort war: ${ctx.correctAnswerText}.
+WICHTIG: Verspotte NIEMALS jemanden, der richtig geantwortet hat. Ziehe ausschließlich die Person auf, die falsch lag. Wer richtig lag, bekommt höchstens widerwillige Anerkennung.
+${hint}
+Sei frech, aber unterhaltsam. Kein Markdown, keine Anführungszeichen um den Kommentar.`
+      const text = await callGemini(prompt, { temperature: 1.0, maxOutputTokens: 200 })
       const clean = text.replace(/```/g, '').replace(/^["']|["']$/g, '').trim()
       if (clean) return clean
     } catch (err) {
@@ -250,6 +240,24 @@ export async function generateComment(ctx) {
     }
   }
   return fallbackComment(ctx.outcome)
+}
+
+// Baut einen klaren Hinweis für VERA – wer auf den Arm genommen werden darf.
+function buildCommentHint(category, marcCorrect, melliCorrect) {
+  const s = category?.strength
+  if (marcCorrect && melliCorrect) {
+    return 'Beide lagen richtig – zeige knappe, widerwillige Anerkennung (kein Spott).'
+  }
+  if (!marcCorrect && !melliCorrect) {
+    if (s === 'weak') return 'Beide lagen falsch – triumphiere und betone, wie wichtig Bildung/Bücher sind.'
+    return 'Beide lagen falsch – triumphiere genüsslich über das ganze Team.'
+  }
+  const loser = marcCorrect ? 'Melli' : 'Marc'
+  const winner = marcCorrect ? 'Marc' : 'Melli'
+  let extra = ''
+  if (!melliCorrect && s === 'melli') extra = ` Pikant: ${loser} liegt ausgerechnet in ihrer Paradedisziplin daneben – sei besonders spitz zu ihr.`
+  if (!marcCorrect && s === 'marc') extra = ` Pikant: ${loser} liegt ausgerechnet in seiner Paradedisziplin daneben – sei besonders spitz zu ihm.`
+  return `Nur ${loser} lag falsch, ${winner} lag richtig. Nimm ${loser} auf den Arm und lass ${winner} in Ruhe.${extra}`
 }
 
 function fallbackComment(outcome) {

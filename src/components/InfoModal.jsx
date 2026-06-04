@@ -77,7 +77,7 @@ export default function InfoModal({ onClose, onLogout, user, soloTest, onToggleS
 
         <h3>App</h3>
         <p className="subtitle" style={{ marginBottom: 10 }}>
-          Version <strong>1.0.13</strong>. Falls eine neue Version nicht
+          Version <strong>1.0.14</strong>. Falls eine neue Version nicht
           automatisch erscheint, hier frisch laden:
         </p>
         <button className="btn btn-ghost" onClick={handleForceUpdate}>
@@ -105,6 +105,8 @@ export default function InfoModal({ onClose, onLogout, user, soloTest, onToggleS
 
         <h3>Changelog</h3>
         <ul>
+          <li className="changelog-item">v1.0.14 – VERA zählt richtig an</li>
+          <li>VERA verspottet nur noch, wer wirklich falsch lag (nicht den, der richtig war)</li>
           <li className="changelog-item">v1.0.13 – Echte KI-Fragen</li>
           <li>„Thinking" abgeschaltet → Modell liefert jetzt wirklich Fragen</li>
           <li>„KI testen" erzeugt eine echte Beispiel-Frage als Beweis</li>
