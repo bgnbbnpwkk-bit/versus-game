@@ -147,9 +147,16 @@ const QUESTION_SYSTEM_PROMPT = (category, avoid, angle) => {
     const list = avoid.slice(-30).join(' | ')
     p += `\nWICHTIG: Stelle eine DEUTLICH ANDERE Frage als diese bereits gestellten (weder gleich noch sehr ähnlich): ${list}`
   }
+  p += `\nDie vier Optionen enthalten NUR den reinen Antworttext – KEINE Präfixe wie "A)", "B.", "(C)" oder "1)".`
   p += `\nAntworte NUR mit einem JSON-Objekt: { "question": "...", "options": ["A", "B", "C", "D"], "correctIndex": 0-3 }
 Keine weiteren Erklärungen. Nur das JSON.`
   return p
+}
+
+// Entfernt versehentliche Aufzählungs-Präfixe wie "A) ", "B.", "(C) ", "1) ".
+// Vorsichtig: zerstört keine echten Antworten wie "C-Dur" (kein Trenner ).:).
+function stripOptionPrefix(s) {
+  return String(s).replace(/^\s*\(?[A-Da-d1-4][).:]\s+/, '').trim()
 }
 
 // Echte KI-Generierung – wirft bei Fehler (KEIN Fallback). Für Diagnose & intern.
@@ -180,7 +187,7 @@ async function generateQuestionRaw(category, avoidList = []) {
       if (avoidSet.has(norm) && attempt < 2) continue // Dublette -> neu versuchen
       return {
         text: parsed.question,
-        options: parsed.options.map(String),
+        options: parsed.options.map((o) => stripOptionPrefix(o)),
         correctIndex: Math.max(0, Math.min(3, parsed.correctIndex)),
         category: category.name,
         categoryColor: category.color,

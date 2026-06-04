@@ -5,7 +5,7 @@
 // Da die App ohnehin Netzwerk braucht (Firebase + Gemini), ist Offline-
 // Caching der Seite überflüssig. Nur hash-benannte, unveränderliche Assets
 // (JS/CSS/Icons/Fonts) werden gecacht – die können nie "veralten".
-const CACHE_NAME = 'versus-v1.2.1';
+const CACHE_NAME = 'versus-v1.2.2';
 
 self.addEventListener('install', () => self.skipWaiting());
 
