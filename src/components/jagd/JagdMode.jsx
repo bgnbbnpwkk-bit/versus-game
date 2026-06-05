@@ -657,20 +657,22 @@ function JagdQuestion({ room, user, now, onAnswer }) {
 
   return (
     <div className="screen">
-      <StepTracker candidatePos={room.candidatePos} hunterPos={room.hunterPos} />
+      <div className="jagd-hud">
+        <StepTracker candidatePos={room.candidatePos} hunterPos={room.hunterPos} />
 
-      <div className="jagd-subbar">
-        <span className="role-chip" style={{ background: roleColor }}>
-          {isCandidate ? '🏃 Du fliehst' : '🐆 Du jagst'}
-        </span>
-        <span className="q-counter">
-          {room.questionIndex + 1} / {JAGD_QUESTIONS}
-        </span>
-      </div>
+        <div className="jagd-subbar">
+          <span className="role-chip" style={{ background: roleColor }}>
+            {isCandidate ? '🏃 Du fliehst' : '🐆 Du jagst'}
+          </span>
+          <span className="q-counter">
+            {room.questionIndex + 1} / {JAGD_QUESTIONS}
+          </span>
+        </div>
 
-      <div className="timer">
-        <div className="timer-bar" style={{ width: pct + '%', background: secLeft <= 5 ? HUNT_COLOR : '#2563eb' }} />
-        <span className="timer-num">⏱ {secLeft}s</span>
+        <div className="timer">
+          <div className="timer-bar" style={{ width: pct + '%', background: secLeft <= 5 ? HUNT_COLOR : '#2563eb' }} />
+          <span className="timer-num">⏱ {secLeft}s</span>
+        </div>
       </div>
 
       <div className="q-header" style={{ marginTop: 12 }}>

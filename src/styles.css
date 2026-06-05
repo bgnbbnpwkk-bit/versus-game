@@ -1053,6 +1053,17 @@ body {
 }
 
 /* Jagd-Subbar + Rollen-Chip */
+.jagd-hud {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  flex-shrink: 0;
+  background: rgba(244, 246, 251, 0.92);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding-bottom: 8px;
+  margin-bottom: 4px;
+}
 .jagd-subbar {
   display: flex;
   align-items: center;

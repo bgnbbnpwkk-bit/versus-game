@@ -32,6 +32,8 @@ export default function InfoModal({ onClose }) {
 
         <h3>Changelog</h3>
         <ul>
+          <li className="changelog-item">v1.3.3 – Timer bleibt sichtbar</li>
+          <li>Stufentracker &amp; Timer in der Jagd oben fixiert (scrollt nicht mehr weg)</li>
           <li className="changelog-item">v1.3.2 – Jagd-Feinschliff</li>
           <li>Mehrere Kategorien gleichzeitig wählbar</li>
           <li>Echte Verfolgung: beide starten rechts, Kandidat:in mit Vorsprung</li>
