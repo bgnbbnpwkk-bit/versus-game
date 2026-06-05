@@ -32,6 +32,8 @@ export default function InfoModal({ onClose }) {
 
         <h3>Changelog</h3>
         <ul>
+          <li className="changelog-item">v1.3.1 – Solo-Test für „Die Jagd"</li>
+          <li>Jagd auch allein testbar (simulierter Gegner)</li>
           <li className="changelog-item">v1.3.0 – Neuer Modus „Die Jagd"</li>
           <li>Marc &amp; Melli gegeneinander: Kandidat:in vs. Jäger:in</li>
           <li>Stufensystem (11 Stufen), 20-Sekunden-Timer, VERA moderiert</li>

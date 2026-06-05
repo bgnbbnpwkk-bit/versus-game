@@ -42,7 +42,7 @@ function veraJagdExpression(situation) {
   }
 }
 
-export default function JagdMode({ user, onExit }) {
+export default function JagdMode({ user, onExit, soloTest = false }) {
   const [roomCode, setRoomCode] = useState(null)
   const [isHost, setIsHost] = useState(false)
   const [room, setRoom] = useState(null)
@@ -88,6 +88,35 @@ export default function JagdMode({ user, onExit }) {
     const id = setInterval(() => setNow(Date.now()), 250)
     return () => clearInterval(id)
   }, [room?.status])
+
+  // --- Solo-Test: simulierten Gegner anwesend setzen ---
+  useEffect(() => {
+    if (!soloTest || !isHost || !roomCode) return
+    const r = room
+    if (!r || r.status !== 'lobby') return
+    const partnerId = user.id === 'marc' ? 'melli' : 'marc'
+    if (r.players?.[partnerId]) return
+    updateJagdRoom(roomCode, {
+      players: { ...(r.players || {}), [partnerId]: true },
+    }).catch(() => {})
+  }, [soloTest, isHost, roomCode, user, room?.status])
+
+  // --- Solo-Test: Gegner antwortet automatisch (zufällig, innerhalb der Zeit) ---
+  useEffect(() => {
+    if (!soloTest || !isHost || !roomCode || !user) return
+    const r = room
+    if (!r || r.status !== 'playing' || !r.currentQuestion) return
+    const partnerId = user.id === 'marc' ? 'melli' : 'marc'
+    if (r.answers?.[partnerId] != null) return
+    const t = setTimeout(() => {
+      const cur = roomRef.current
+      if (!cur || cur.status !== 'playing') return
+      if (cur.answers?.[partnerId] != null) return
+      submitJagdAnswer(roomCode, partnerId, Math.floor(Math.random() * 4)).catch(() => {})
+    }, 1500 + Math.random() * 2500)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [soloTest, isHost, roomCode, user, room?.status, room?.questionIndex])
 
   const hunter = candidate === 'marc' ? 'melli' : 'marc'
 

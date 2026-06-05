@@ -420,7 +420,7 @@ export default function App() {
       return <ModeSelectScreen user={user} onSelect={setMode} />
     }
     if (mode === 'jagd') {
-      return <JagdMode user={user} onExit={goToModeSelect} />
+      return <JagdMode user={user} onExit={goToModeSelect} soloTest={soloTest} />
     }
     if (!roomCode) {
       return (

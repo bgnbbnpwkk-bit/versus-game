@@ -128,9 +128,9 @@ export default function SettingsModal({ onClose, onLogout, user, soloTest, onTog
 
         <h3>Solo-Test</h3>
         <p className="subtitle" style={{ marginBottom: 10 }}>
-          Allein testen: Die App simuliert den Partner automatisch (ist sofort „da"
-          und antwortet zufällig), damit du den ganzen Ablauf ohne zweites Handy
-          durchspielen kannst.
+          Allein testen (beide Modi): Die App simuliert den Partner/Gegner
+          automatisch (ist sofort „da" und antwortet zufällig), damit du den
+          ganzen Ablauf ohne zweites Handy durchspielen kannst.
         </p>
         <button className={soloTest ? 'btn btn-melli' : 'btn btn-ghost'} onClick={onToggleSolo}>
           {soloTest ? '🧪 Solo-Test: AN (zum Deaktivieren tippen)' : '🧪 Solo-Test aktivieren'}
