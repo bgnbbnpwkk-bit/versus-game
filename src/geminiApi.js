@@ -4,6 +4,7 @@
 // =====================================================================
 import { GEMINI_MODEL } from './config.js'
 import { FALLBACK_QUESTIONS, FALLBACK_COMMENTS } from './data/fallback.js'
+import { JAGD_SITUATION, JAGD_FALLBACK } from './data/jagdComments.js'
 
 const GEMINI_KEY_STORAGE = 'versus_gemini_key'
 const GEMINI_MODEL_STORAGE = 'versus_gemini_model'
@@ -269,5 +270,28 @@ function buildCommentHint(category, marcCorrect, melliCorrect) {
 
 function fallbackComment(outcome) {
   const pool = FALLBACK_COMMENTS[outcome] || FALLBACK_COMMENTS.split
+  return pool[Math.floor(Math.random() * pool.length)]
+}
+
+// --- VERA als Moderatorin von „Die Jagd" ---
+export async function generateJagdComment(situation, { candidateName, hunterName } = {}) {
+  if (hasValidKey()) {
+    try {
+      const hint = (JAGD_SITUATION[situation] || '')
+        .replaceAll('{c}', candidateName || 'Kandidat:in')
+        .replaceAll('{h}', hunterName || 'Jäger:in')
+      const prompt = `Du bist VERA, die freche, provokante Moderatorin der Quiz-Show „Die Jagd".
+${candidateName || 'Der/die Kandidat:in'} flieht Richtung Ziel (Stufe 10), ${hunterName || 'der/die Jäger:in'} jagt von oben herab.
+Schreibe einen sehr kurzen, frechen Moderations-Kommentar (1-2 Sätze, max. 120 Zeichen) auf Deutsch.
+Situation: ${hint}
+Kein Markdown, keine Anführungszeichen um den Kommentar.`
+      const text = await callGemini(prompt, { temperature: 1.0, maxOutputTokens: 200 })
+      const clean = text.replace(/```/g, '').replace(/^["']|["']$/g, '').trim()
+      if (clean) return clean
+    } catch (err) {
+      console.warn('generateJagdComment: Gemini fehlgeschlagen, nutze Fallback.', err)
+    }
+  }
+  const pool = JAGD_FALLBACK[situation] || JAGD_FALLBACK.gameStart
   return pool[Math.floor(Math.random() * pool.length)]
 }

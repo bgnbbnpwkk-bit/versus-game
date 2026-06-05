@@ -18,6 +18,7 @@ export default function InfoModal({ onClose }) {
 
         <h3>Features</h3>
         <ul>
+          <li>Zwei Modi: „vs. VERA" (kooperativ) &amp; „Die Jagd" (gegeneinander) 🐆</li>
           <li>Kooperatives Quiz: Marc &amp; Melli gegen VERA (KI) 😈</li>
           <li>VERA als gezeichnete Gegnerin, die euch live gegenübersitzt</li>
           <li>8 Kategorien mit individuellen Farben</li>
@@ -31,6 +32,10 @@ export default function InfoModal({ onClose }) {
 
         <h3>Changelog</h3>
         <ul>
+          <li className="changelog-item">v1.3.0 – Neuer Modus „Die Jagd"</li>
+          <li>Marc &amp; Melli gegeneinander: Kandidat:in vs. Jäger:in</li>
+          <li>Stufensystem (11 Stufen), 20-Sekunden-Timer, VERA moderiert</li>
+          <li>Modus-Wahl nach dem Login</li>
           <li className="changelog-item">v1.2.2 – Antworten ohne Doppel-Buchstaben</li>
           <li>Antwortoptionen zeigen keinen doppelten „A)"-Präfix mehr</li>
           <li className="changelog-item">v1.2.1 – Animationen sichtbar</li>

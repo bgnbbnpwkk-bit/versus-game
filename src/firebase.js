@@ -30,11 +30,11 @@ async function explainError(method, res, hadToken) {
   }`
 }
 
-async function dbRequest(method, roomCode, { data, childPath = '' } = {}) {
+async function dbRequest(method, roomCode, { data, childPath = '', root = 'versus' } = {}) {
   const token = await getIdToken()
   const child = childPath ? `/${childPath}` : ''
   const authQ = token ? `?auth=${token}` : ''
-  const url = `${BASE}/versus/${roomCode}${child}.json${authQ}`
+  const url = `${BASE}/${root}/${roomCode}${child}.json${authQ}`
   const opts = { method }
   if (data !== undefined) {
     opts.headers = { 'Content-Type': 'application/json' }
@@ -46,16 +46,16 @@ async function dbRequest(method, roomCode, { data, childPath = '' } = {}) {
 }
 
 // --- Low-level Helpers ---
-async function dbGet(roomCode, childPath = '') {
-  return dbRequest('GET', roomCode, { childPath })
+async function dbGet(roomCode, childPath = '', root = 'versus') {
+  return dbRequest('GET', roomCode, { childPath, root })
 }
 
-async function dbPut(roomCode, data, childPath = '') {
-  return dbRequest('PUT', roomCode, { data, childPath })
+async function dbPut(roomCode, data, childPath = '', root = 'versus') {
+  return dbRequest('PUT', roomCode, { data, childPath, root })
 }
 
-async function dbPatch(roomCode, data, childPath = '') {
-  return dbRequest('PATCH', roomCode, { data, childPath })
+async function dbPatch(roomCode, data, childPath = '', root = 'versus') {
+  return dbRequest('PATCH', roomCode, { data, childPath, root })
 }
 
 // --- Raumcode-Generierung (4-stellig) ---
@@ -124,3 +124,65 @@ export async function submitAnswer(roomCode, playerId, answerIndex) {
 }
 
 export { generateRoomCode }
+
+// =====================================================================
+// „Die Jagd" – getrennter Pfad /jagd-rooms/{roomCode}
+// =====================================================================
+const JAGD = 'jagd-rooms'
+
+function freshJagdRoom(hostId, { candidateId, hunterId, category }) {
+  return {
+    mode: 'jagd',
+    host: hostId,
+    candidateId,
+    hunterId,
+    candidatePos: 0,
+    hunterPos: 10,
+    players: { marc: false, melli: false },
+    status: 'lobby', // lobby | playing | reveal | finished
+    category: category || null, // Kategorie-Id
+    currentQuestion: null,
+    questionIndex: 0,
+    deadline: null,
+    answers: { marc: null, melli: null },
+    veraComment: null,
+    lastResult: null,
+    winner: null,
+    history: [],
+    createdAt: Date.now(),
+  }
+}
+
+export async function createJagdRoom(hostId, roles) {
+  for (let i = 0; i < 5; i++) {
+    const code = generateRoomCode()
+    const existing = await dbGet(code, '', JAGD)
+    if (existing == null) {
+      const state = freshJagdRoom(hostId, roles)
+      state.players[hostId] = true
+      await dbPut(code, state, '', JAGD)
+      return code
+    }
+  }
+  throw new Error('Konnte keinen freien Raumcode erzeugen. Bitte erneut versuchen.')
+}
+
+export async function joinJagdRoom(roomCode, playerId) {
+  const existing = await dbGet(roomCode, '', JAGD)
+  if (existing == null) throw new Error('Diesen Jagd-Raum gibt es nicht. Code prüfen!')
+  if (existing.mode !== 'jagd') throw new Error('Das ist kein Jagd-Raum.')
+  await dbPatch(roomCode, { [playerId]: true }, 'players', JAGD)
+  return existing
+}
+
+export async function getJagdRoom(roomCode) {
+  return dbGet(roomCode, '', JAGD)
+}
+
+export async function updateJagdRoom(roomCode, patch) {
+  return dbPatch(roomCode, patch, '', JAGD)
+}
+
+export async function submitJagdAnswer(roomCode, playerId, answerIndex) {
+  return dbPatch(roomCode, { [playerId]: answerIndex }, 'answers', JAGD)
+}

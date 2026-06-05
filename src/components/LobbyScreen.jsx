@@ -1,7 +1,7 @@
 // Raum erstellen (Marc) oder beitreten (Melli) per 4-stelligem Code.
 import React, { useState } from 'react'
 
-export default function LobbyScreen({ user, onCreate, onJoin, busy, error }) {
+export default function LobbyScreen({ user, onCreate, onJoin, busy, error, onExit }) {
   const [mode, setMode] = useState(null) // null | 'join'
   const [code, setCode] = useState('')
 
@@ -69,6 +69,12 @@ export default function LobbyScreen({ user, onCreate, onJoin, busy, error }) {
         )}
 
         {error && <p className="error-text">{error}</p>}
+
+        {onExit && mode !== 'join' && (
+          <button className="btn btn-ghost" onClick={onExit} disabled={busy}>
+            ← Modus wechseln
+          </button>
+        )}
       </div>
     </div>
   )

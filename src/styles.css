@@ -963,3 +963,182 @@ body {
   height: 1px;
   background: var(--border);
 }
+
+/* ===================================================================
+   Modus-Wahl + „Die Jagd"
+   =================================================================== */
+.mode-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-left: 6px solid var(--marc);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+.mode-card:active {
+  transform: scale(0.98);
+}
+.mode-versus {
+  border-left-color: #2563eb;
+}
+.mode-jagd {
+  border-left-color: #ef4444;
+}
+.mode-emoji {
+  font-size: 40px;
+  line-height: 1;
+  flex: 0 0 auto;
+}
+.mode-name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 20px;
+}
+.mode-desc {
+  color: var(--text-soft);
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+/* Stufentracker */
+.steps {
+  display: flex;
+  gap: 3px;
+  align-items: flex-end;
+  justify-content: space-between;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 6px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+.step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+}
+.step-num {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-faint);
+}
+.step-markers {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  font-size: 15px;
+  line-height: 1;
+}
+.step.goal .step-num {
+  color: #f59e0b;
+}
+.step.has-cand {
+  border-bottom: 3px solid #22c55e;
+}
+.step.has-hunt {
+  border-bottom: 3px solid #ef4444;
+}
+
+/* Jagd-Subbar + Rollen-Chip */
+.jagd-subbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 6px 0;
+  flex-shrink: 0;
+}
+.role-chip {
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 999px;
+}
+
+/* Timer */
+.timer {
+  position: relative;
+  height: 26px;
+  background: var(--surface-2);
+  border-radius: 999px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.timer-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  transition: width 0.25s linear;
+  opacity: 0.28;
+}
+.timer-num {
+  position: relative;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--text);
+}
+
+/* Rollen-/Kategorie-Auswahl */
+.role-label {
+  font-weight: 700;
+  font-size: 14px;
+}
+.role-pick {
+  display: flex;
+  gap: 10px;
+}
+.role-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 14px;
+  border: 2px solid var(--border);
+  background: #fff;
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+}
+.cat-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cat-chip {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: #fff;
+  font-family: var(--font);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+.role-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-weight: 600;
+  font-size: 13.5px;
+}

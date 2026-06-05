@@ -23,6 +23,8 @@ import RevealScreen from './components/RevealScreen.jsx'
 import ResultScreen from './components/ResultScreen.jsx'
 import InfoModal from './components/InfoModal.jsx'
 import SettingsModal from './components/SettingsModal.jsx'
+import ModeSelectScreen from './components/ModeSelectScreen.jsx'
+import JagdMode from './components/jagd/JagdMode.jsx'
 
 const HIGHSCORE_KEY = 'versus_highscore'
 const RECENT_BY_CAT_KEY = 'versus_recent_by_cat'
@@ -76,6 +78,7 @@ export default function App() {
   const [lobbyError, setLobbyError] = useState('')
   const [showInfo, setShowInfo] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const [mode, setMode] = useState(null) // null | 'versus' | 'jagd'
   const [highscore, setHighscore] = useState(null)
   const [soloTest, setSoloTest] = useState(false)
 
@@ -154,6 +157,15 @@ export default function App() {
     setIsHost(false)
     setShowInfo(false)
     setShowSettings(false)
+    setMode(null)
+  }, [])
+
+  // Zurück zur Modus-Wahl (auch Versus-Raum verlassen).
+  const goToModeSelect = useCallback(() => {
+    setMode(null)
+    setRoomCode(null)
+    setRoom(null)
+    setIsHost(false)
   }, [])
 
   // --- Polling des Spielzustands ---
@@ -404,6 +416,12 @@ export default function App() {
     if (!user) {
       return <LoginScreen onSignIn={handleSignIn} authError={authError} />
     }
+    if (!mode) {
+      return <ModeSelectScreen user={user} onSelect={setMode} />
+    }
+    if (mode === 'jagd') {
+      return <JagdMode user={user} onExit={goToModeSelect} />
+    }
     if (!roomCode) {
       return (
         <LobbyScreen
@@ -412,6 +430,7 @@ export default function App() {
           onJoin={handleJoin}
           busy={busy}
           error={lobbyError}
+          onExit={goToModeSelect}
         />
       )
     }
