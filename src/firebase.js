@@ -130,17 +130,17 @@ export { generateRoomCode }
 // =====================================================================
 const JAGD = 'jagd-rooms'
 
-function freshJagdRoom(hostId, { candidateId, hunterId, category }) {
+function freshJagdRoom(hostId, { candidateId, hunterId, categories }) {
   return {
     mode: 'jagd',
     host: hostId,
     candidateId,
     hunterId,
-    candidatePos: 0,
-    hunterPos: 10,
+    candidatePos: 7, // Vorsprung: startet näher am Ziel (links, Stufe 0)
+    hunterPos: 10, // jagt von ganz rechts hinterher
     players: { marc: false, melli: false },
     status: 'lobby', // lobby | playing | reveal | finished
-    category: category || null, // Kategorie-Id
+    categories: categories && categories.length ? categories : ['allgemeinwissen'],
     currentQuestion: null,
     questionIndex: 0,
     deadline: null,

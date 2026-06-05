@@ -25,7 +25,13 @@ const TIMER_MS = 20000
 const CAND_COLOR = '#22C55E'
 const HUNT_COLOR = '#EF4444'
 
+// Beide starten rechts (Ziel = links, Stufe 0). Kandidat:in mit Vorsprung.
+const HUNTER_START = 10
+const HEADSTART = 3
+const CAND_START = HUNTER_START - HEADSTART // 7
+
 const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n))
+const pickCat = (cats) => (cats && cats.length ? cats[Math.floor(Math.random() * cats.length)] : 'allgemeinwissen')
 
 function veraJagdExpression(situation) {
   switch (situation) {
@@ -53,8 +59,18 @@ export default function JagdMode({ user, onExit, soloTest = false }) {
   // Setup-UI (vor dem Raum)
   const [setupMode, setSetupMode] = useState('menu') // menu | create | join
   const [candidate, setCandidate] = useState('marc')
-  const [category, setCategory] = useState(CATEGORIES[0].id)
+  const [categories, setCategories] = useState([CATEGORIES[0].id])
   const [joinCode, setJoinCode] = useState('')
+
+  const toggleCategory = useCallback((id) => {
+    setCategories((prev) =>
+      prev.includes(id)
+        ? prev.length > 1
+          ? prev.filter((x) => x !== id)
+          : prev // mind. eine Kategorie bleibt aktiv
+        : [...prev, id]
+    )
+  }, [])
 
   const roomRef = useRef(null)
   roomRef.current = room
@@ -127,7 +143,7 @@ export default function JagdMode({ user, onExit, soloTest = false }) {
       const code = await createJagdRoom(user.id, {
         candidateId: candidate,
         hunterId: hunter,
-        category,
+        categories,
       })
       resolvedRef.current = -1
       askedRef.current = []
@@ -138,7 +154,7 @@ export default function JagdMode({ user, onExit, soloTest = false }) {
     } finally {
       setBusy(false)
     }
-  }, [user, candidate, hunter, category])
+  }, [user, candidate, hunter, categories])
 
   const handleJoin = useCallback(async () => {
     setBusy(true)
@@ -167,7 +183,7 @@ export default function JagdMode({ user, onExit, soloTest = false }) {
     if (!room) return
     setBusy(true)
     try {
-      const cat = getCategoryById(room.category)
+      const cat = getCategoryById(pickCat(room.categories))
       const q = await generateQuestion(cat, askedRef.current)
       askedRef.current = [...askedRef.current, normalizeQuestion(q.text)]
       resolvedRef.current = -1
@@ -177,8 +193,8 @@ export default function JagdMode({ user, onExit, soloTest = false }) {
         currentQuestion: q,
         deadline: Date.now() + TIMER_MS,
         answers: { marc: null, melli: null },
-        candidatePos: 0,
-        hunterPos: 10,
+        candidatePos: CAND_START,
+        hunterPos: HUNTER_START,
         winner: null,
         veraComment: null,
         lastResult: null,
@@ -200,12 +216,13 @@ export default function JagdMode({ user, onExit, soloTest = false }) {
       const huntAns = a[r.hunterId]
       const candidateCorrect = candAns === q.correctIndex
       const hunterCorrect = huntAns === q.correctIndex
-      const candPos = clamp(r.candidatePos + (candidateCorrect ? 1 : 0), 0, 10)
+      // Beide laufen nach links (Richtung Ziel = Stufe 0).
+      const candPos = clamp(r.candidatePos - (candidateCorrect ? 1 : 0), 0, 10)
       const huntPos = clamp(r.hunterPos - (hunterCorrect ? 1 : 0), 0, 10)
 
       let winner = null
-      if (candPos >= 10) winner = 'candidate'
-      else if (huntPos <= candPos) winner = 'hunter'
+      if (candPos <= 0) winner = 'candidate' // Ziel erreicht -> entkommen
+      else if (huntPos <= candPos) winner = 'hunter' // eingeholt -> gefangen
 
       let situation
       if (winner === 'candidate') situation = 'candidateWins'
@@ -217,10 +234,9 @@ export default function JagdMode({ user, onExit, soloTest = false }) {
 
       const isLast = r.questionIndex >= JAGD_QUESTIONS - 1
       if (!winner && isLast) {
-        const candRemaining = 10 - candPos
-        const huntRemaining = huntPos - candPos
-        winner = candRemaining <= huntRemaining ? 'candidate' : 'hunter'
-        situation = winner === 'candidate' ? 'candidateWins' : 'hunterWins'
+        // Nicht eingeholt bis zum Ende -> Kandidat:in entkommt.
+        winner = 'candidate'
+        situation = 'candidateWins'
       }
 
       let comment = ''
@@ -283,7 +299,7 @@ export default function JagdMode({ user, onExit, soloTest = false }) {
     }
     setBusy(true)
     try {
-      const cat = getCategoryById(room.category)
+      const cat = getCategoryById(pickCat(room.categories))
       const q = await generateQuestion(cat, askedRef.current)
       askedRef.current = [...askedRef.current, normalizeQuestion(q.text)]
       await updateJagdRoom(roomCode, {
@@ -306,8 +322,8 @@ export default function JagdMode({ user, onExit, soloTest = false }) {
     resolvedRef.current = -1
     await updateJagdRoom(roomCode, {
       status: 'lobby',
-      candidatePos: 0,
-      hunterPos: 10,
+      candidatePos: CAND_START,
+      hunterPos: HUNTER_START,
       questionIndex: 0,
       currentQuestion: null,
       answers: { marc: null, melli: null },
@@ -343,8 +359,8 @@ export default function JagdMode({ user, onExit, soloTest = false }) {
         setSetupMode={setSetupMode}
         candidate={candidate}
         setCandidate={setCandidate}
-        category={category}
-        setCategory={setCategory}
+        categories={categories}
+        toggleCategory={toggleCategory}
         joinCode={joinCode}
         setJoinCode={setJoinCode}
         onCreate={handleCreate}
@@ -425,8 +441,8 @@ function JagdSetup({
   setSetupMode,
   candidate,
   setCandidate,
-  category,
-  setCategory,
+  categories,
+  toggleCategory,
   joinCode,
   setJoinCode,
   onCreate,
@@ -488,18 +504,25 @@ function JagdSetup({
           </div>
 
           <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div className="role-label">Kategorie</div>
+            <div className="role-label">Kategorien (mehrere möglich)</div>
             <div className="cat-grid">
-              {CATEGORIES.map((c) => (
-                <button
-                  key={c.id}
-                  className={`cat-chip ${category === c.id ? 'active' : ''}`}
-                  style={category === c.id ? { background: c.color, borderColor: c.color, color: '#fff' } : undefined}
-                  onClick={() => setCategory(c.id)}
-                >
-                  {c.name}
-                </button>
-              ))}
+              {CATEGORIES.map((c) => {
+                const on = categories.includes(c.id)
+                return (
+                  <button
+                    key={c.id}
+                    className={`cat-chip ${on ? 'active' : ''}`}
+                    style={on ? { background: c.color, borderColor: c.color, color: '#fff' } : undefined}
+                    onClick={() => toggleCategory(c.id)}
+                  >
+                    {on ? '✓ ' : ''}
+                    {c.name}
+                  </button>
+                )
+              })}
+            </div>
+            <div className="muted" style={{ textAlign: 'left' }}>
+              {categories.length} ausgewählt – Fragen werden zufällig daraus gezogen.
             </div>
           </div>
 
@@ -546,11 +569,12 @@ function JagdSetup({
 function JagdLobby({ room, roomCode, user, isHost, onStart, onLeave, busy }) {
   const players = room.players || {}
   const bothHere = players.marc && players.melli
-  const cat = getCategoryById(room.category)
+  const catNames = (room.categories || []).map((id) => getCategoryById(id).name).join(', ')
   const line = JAGD_FALLBACK.gameStart[0]
   return (
     <div className="screen">
       <VeraStage expression="smug" line={line} size={112} compact />
+      <StepTracker candidatePos={room.candidatePos} hunterPos={room.hunterPos} />
       <div className="center-stack">
         <div style={{ textAlign: 'center' }}>
           <p className="subtitle">Raumcode für den/die Partner:in:</p>
@@ -561,7 +585,7 @@ function JagdLobby({ room, roomCode, user, isHost, onStart, onLeave, busy }) {
           <RoleRow role="cand" id={room.candidateId} here={players[room.candidateId]} />
           <RoleRow role="hunt" id={room.hunterId} here={players[room.hunterId]} />
           <div className="muted" style={{ textAlign: 'center' }}>
-            Kategorie: <strong style={{ color: cat.color }}>{cat.name}</strong>
+            Kategorien: <strong>{catNames}</strong>
           </div>
         </div>
 
@@ -609,7 +633,6 @@ function RoleRow({ role, id, here }) {
 // ------------------------------------------------------------- Question
 function JagdQuestion({ room, user, now, onAnswer }) {
   const q = room.currentQuestion
-  const cat = getCategoryById(room.category)
   const myAnswer = room.answers?.[user.id]
   const partnerId = user.id === 'marc' ? 'melli' : 'marc'
   const partnerAnswered = room.answers?.[partnerId] != null
@@ -651,8 +674,8 @@ function JagdQuestion({ room, user, now, onAnswer }) {
       </div>
 
       <div className="q-header" style={{ marginTop: 12 }}>
-        <span className="cat-badge" style={{ background: cat.color }}>
-          {cat.name}
+        <span className="cat-badge" style={{ background: q.categoryColor || '#2563eb' }}>
+          {q.category}
         </span>
       </div>
       <h2 className="q-text">{q.text}</h2>

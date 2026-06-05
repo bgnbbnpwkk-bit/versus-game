@@ -1,5 +1,6 @@
-// Visuelles Stufensystem für „Die Jagd": 11 Stufen (0–10).
-// Kandidat 🏃 (grün) klettert zu 10, Jäger 🐆 (rot) jagt von 10 herab.
+// Visuelles Stufensystem für „Die Jagd": 11 Stufen.
+// Ziel ist links (Stufe 0, 🏁). Beide starten rechts und laufen nach links:
+// Kandidat:in 🏃 (Vorsprung) flieht, Jäger:in 🐆 jagt hinterher.
 import React from 'react'
 
 export default function StepTracker({ candidatePos, hunterPos }) {
@@ -9,7 +10,7 @@ export default function StepTracker({ candidatePos, hunterPos }) {
       {steps.map((i) => {
         const isCand = i === candidatePos
         const isHunt = i === hunterPos
-        const isGoal = i === 10
+        const isGoal = i === 0
         return (
           <div
             key={i}
@@ -19,7 +20,7 @@ export default function StepTracker({ candidatePos, hunterPos }) {
             <span className="step-markers">
               {isCand && <span className="marker-cand">🏃</span>}
               {isHunt && <span className="marker-hunt">🐆</span>}
-              {isGoal && !isCand && !isHunt && <span className="marker-goal">🏆</span>}
+              {isGoal && !isCand && !isHunt && <span className="marker-goal">🏁</span>}
             </span>
           </div>
         )

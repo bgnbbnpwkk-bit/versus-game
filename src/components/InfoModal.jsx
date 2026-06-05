@@ -32,6 +32,9 @@ export default function InfoModal({ onClose }) {
 
         <h3>Changelog</h3>
         <ul>
+          <li className="changelog-item">v1.3.2 – Jagd-Feinschliff</li>
+          <li>Mehrere Kategorien gleichzeitig wählbar</li>
+          <li>Echte Verfolgung: beide starten rechts, Kandidat:in mit Vorsprung</li>
           <li className="changelog-item">v1.3.1 – Solo-Test für „Die Jagd"</li>
           <li>Jagd auch allein testbar (simulierter Gegner)</li>
           <li className="changelog-item">v1.3.0 – Neuer Modus „Die Jagd"</li>
